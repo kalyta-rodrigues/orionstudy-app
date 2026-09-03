@@ -203,6 +203,30 @@ async function orionConnectGoogleDrive() {
   }
 }
 
+async function orionManualGoogleBackup() {
+  if (!orionDriveIsConfigured()) {
+    alert('Configure o Client ID do Google Cloud Console antes de usar o Google Drive.');
+    return;
+  }
+  const button = document.getElementById('orion-gdrive-backup');
+  if (button) button.disabled = true;
+  try {
+    await orionLoadGoogleScript();
+    if (!orionGoogleAccessToken) await orionGetGoogleAccessToken(true);
+    await orionBackupToGoogleDrive();
+    if (button) {
+      button.textContent = '☁ Salvo no Drive';
+      setTimeout(() => { button.textContent = '☁ Salvar no Drive'; }, 1800);
+    }
+  } catch (error) {
+    orionGoogleAccessToken = null;
+    console.warn('[OrionStudy] backup manual no Google Drive falhou:', error);
+    alert('Não foi possível salvar o backup no Google Drive agora.');
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 async function orionRunAutomaticGoogleBackup() {
   if (!orionDriveIsConnected() || !orionDriveIsConfigured()) return;
   try {
@@ -273,6 +297,7 @@ function orionMountBackupBar() {
     '<button type="button" id="orion-exp" title="Baixar um .json com todo o seu progresso">⬇ Backup</button>' +
     '<button type="button" id="orion-imp" title="Restaurar progresso de um arquivo de backup">⬆ Restaurar</button>' +
     '<button type="button" id="orion-gdrive" title="Conectar e fazer backup no Google Drive">☁ Conectar Google Drive</button>' +
+    '<button type="button" id="orion-gdrive-backup" title="Salvar um backup diretamente no Google Drive">☁ Salvar no Drive</button>' +
     '<span id="orion-gdrive-status" aria-live="polite"></span>' +
     '<input type="file" id="orion-imp-file" accept="application/json,.json" hidden>';
   document.body.appendChild(bar);
@@ -301,6 +326,7 @@ function orionMountBackupBar() {
   };
   const gdriveButton = document.getElementById('orion-gdrive');
   gdriveButton.onclick = orionConnectGoogleDrive;
+  document.getElementById('orion-gdrive-backup').onclick = orionManualGoogleBackup;
   if (orionDriveIsConnected()) {
     orionDriveSetStatus('Google Drive conectado ✓' + orionDriveLastBackupText());
   }
