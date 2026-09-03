@@ -219,7 +219,7 @@ async function orionManualGoogleBackup() {
   if (button) button.disabled = true;
   try {
     await orionLoadGoogleScript();
-    if (!orionGoogleAccessToken) await orionGetGoogleAccessToken(true);
+    if (!orionGoogleAccessToken) await orionGetGoogleAccessToken(!orionDriveIsConnected());
     await orionBackupToGoogleDrive();
     if (button) {
       button.textContent = '☁ Salvo no Drive';
