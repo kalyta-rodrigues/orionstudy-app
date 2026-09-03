@@ -1,4 +1,4 @@
-const GOOGLE_CLIENT_ID = 'SEU_CLIENT_ID_AQUI';
+const GOOGLE_CLIENT_ID = '641961724620-kdn509cn2jo2pj7kplrtg2orv8l2a7b3.apps.googleusercontent.com';
 const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const GOOGLE_DRIVE_FOLDER = 'OrionStudy';
 const GOOGLE_DRIVE_FILE = 'orionstudy-backup.json';
