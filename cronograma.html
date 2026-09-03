@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronograma Gran — BB Agente TI</title>
+<script src="shared.js"></script>
+<style>
+:root{
+  --bg:#080810;--sidebar:#0c0c1a;--surface:#111128;--surface2:#191930;
+  --border:#22224a;--text:#e2e2f0;--muted:#6666aa;--ok:#10b981;
+  --accent:#4f46e5;--accent2:#6366f1;--today:#1e1b4b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;min-width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;z-index:10}
+.sidebar-logo{padding:20px 18px 14px;font-size:1rem;font-weight:800;background:linear-gradient(135deg,#a855f7,#6366f1,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.sidebar-logo span{display:block;font-size:.65rem;font-weight:500;color:var(--muted);-webkit-text-fill-color:var(--muted)}
+.sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:6px 10px}
+.snav{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:none;background:none;color:var(--muted);font-size:.83rem;font-weight:500;cursor:pointer;text-align:left;width:100%;transition:all .15s;text-decoration:none}
+.snav:hover{background:var(--surface);color:var(--text)}
+.snav.active{background:var(--surface2);color:#fff;font-weight:600}
+.snav svg{flex-shrink:0;opacity:.7}
+.snav.active svg{opacity:1}
+.sidebar-sep{height:1px;background:var(--border);margin:10px 14px}
+.sidebar-stats{padding:12px 14px}
+.stat-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stat-val{font-size:1.05rem;font-weight:800;color:#fff}
+.stat-sub{font-size:.68rem;color:var(--muted)}
+.prog-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:12px}
+.prog-fill{height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);border-radius:99px;transition:width .6s}
+.sidebar-back{margin-top:auto;padding:12px 10px;border-top:1px solid var(--border)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--sidebar)}
+.month-nav{display:flex;align-items:center;gap:10px}
+.month-nav h2{font-size:1rem;font-weight:700;min-width:160px;text-align:center}
+.nav-arrow{background:var(--surface);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.nav-arrow:hover{border-color:var(--accent2);color:var(--accent2)}
+.header-right{display:flex;align-items:center;gap:10px}
+.today-btn{padding:5px 14px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+.today-btn:hover{border-color:var(--accent2)}
+.view-tabs{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px}
+.vtab{padding:4px 10px;border-radius:5px;border:none;background:none;color:var(--muted);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+.vtab.active{background:var(--accent);color:#fff}
+.scroll-area{flex:1;overflow-y:auto;padding:0}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── CALENDAR ── */
+.cal-head-row{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);background:var(--sidebar);position:sticky;top:0;z-index:5}
+.cal-head-cell{padding:8px 6px;text-align:center;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.cal-head-cell.weekend{color:#6366f155}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(110px,auto);border-left:1px solid var(--border);border-top:1px solid var(--border)}
+.cal-day{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px 6px 8px;overflow:hidden;min-height:110px;background:var(--bg)}
+.cal-day.other-month{background:#06060f;opacity:.5}
+.cal-day.today{background:var(--today)}
+.cal-day.weekend-day{background:#0a0a18}
+.day-num{font-size:.82rem;font-weight:700;margin-bottom:5px;display:flex;align-items:center;justify-content:flex-start}
+.day-num-inner{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.today .day-num-inner{background:var(--accent2);color:#fff}
+.cal-event{display:flex;align-items:flex-start;gap:5px;padding:3px 5px;border-radius:4px;margin-bottom:3px;cursor:pointer;transition:opacity .15s;border:1px solid transparent}
+.cal-event:hover{opacity:.85;border-color:currentColor}
+.cal-event.done{opacity:.4}
+.cal-event.done .ev-title{text-decoration:line-through}
+.ev-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ev-body{min-width:0;flex:1}
+.ev-mat{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-title{font-size:.63rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.ev-time{font-size:.58rem;color:var(--muted);margin-top:1px}
+.cal-more{font-size:.62rem;color:var(--muted);padding:2px 5px;cursor:pointer;font-weight:600}
+.cal-more:hover{color:var(--text)}
+
+/* ── HOJE / SEMANA / TODAS VIEW ── */
+.content-pad{padding:22px 24px 80px}
+.section-title{font-size:1.1rem;font-weight:800;margin-bottom:4px}
+.section-sub{font-size:.82rem;color:var(--muted);margin-bottom:20px}
+.day-block{margin-bottom:24px}
+.day-block-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.day-badge{padding:2px 8px;border-radius:99px;font-size:.62rem;font-weight:700}
+
+.lesson-card{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border-left:3px solid transparent;margin-bottom:5px;transition:background .15s;background:var(--surface)}
+.lesson-card:hover{background:var(--surface2)}
+.lesson-card.done{opacity:.45}
+.lesson-card.done .lc-title{text-decoration:line-through;color:var(--muted)}
+.chk{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;cursor:pointer;transition:all .15s}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.chk.on::after{content:'✓';font-size:.6rem;color:#fff;font-weight:800}
+.lc-body{flex:1;min-width:0}
+.lc-meta{display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap}
+.lc-mat{font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:99px}
+.lc-num{font-size:.68rem;color:var(--muted)}
+.lc-title{font-size:.85rem;line-height:1.4}
+.lc-time{font-size:.7rem;color:var(--muted);margin-top:2px}
+.lc-tag{font-size:.63rem;color:#a78bfa;background:#a855f712;border:1px solid #a855f725;border-radius:4px;padding:1px 5px}
+.lc-actions{display:flex;gap:6px;margin-top:7px}
+.act{padding:3px 9px;border-radius:5px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .15s}
+.act:hover{border-color:#f59e0b;color:#fbbf24}
+.act.adiantar:hover{border-color:#06b6d4;color:#22d3ee}
+
+/* ── MATÉRIAS VIEW ── */
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.mat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.mat-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.mat-name{font-size:.85rem;font-weight:700}
+.mat-pct{font-size:1.4rem;font-weight:800;margin-bottom:2px}
+.mat-info{font-size:.72rem;color:var(--muted)}
+.prog-bar{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:10px}
+.prog-fill{height:100%;border-radius:99px;transition:width .6s}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:#000000aa;z-index:999;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:min(380px,92vw);box-shadow:0 24px 64px #00000070}
+.modal-head{font-size:1rem;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:.8rem;color:var(--muted);margin-bottom:14px}
+.modal-lesson-box{background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:.82rem;line-height:1.5;border-left:3px solid var(--accent)}
+.qbtns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.qbtn{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+.qbtn:hover{border-color:#f59e0b;color:#fbbf24}
+.date-row{display:flex;gap:8px;align-items:center}
+.date-inp{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:.83rem}
+.date-inp:focus{outline:none;border-color:var(--accent2)}
+.btn-move{padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:.8rem;font-weight:700;cursor:pointer}
+.btn-move:hover{background:var(--accent2)}
+.modal-foot{display:flex;gap:8px;margin-top:14px;justify-content:space-between;align-items:center}
+.btn-cancel{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.8rem;cursor:pointer}
+.btn-reset{padding:7px 14px;border-radius:8px;border:1px solid #ef444430;background:none;color:#ef4444;font-size:.78rem;cursor:pointer}
+.btn-reset:hover{background:#ef44440a}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1e1b4b;border:1px solid var(--accent2);color:#fff;padding:9px 20px;border-radius:99px;font-size:.8rem;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+@media(max-width:680px){
+  .sidebar{display:none}
+  .main{width:100%}
+}
+
+/* ═══════════ MODO CLARO — ativado por data-theme="light" no <html> ═══════════ */
+:root[data-theme="light"]{
+  --bg:#f4f4fa; --sidebar:#ffffff; --surface:#ffffff; --surface2:#eef0f7;
+  --border:#dadae8; --text:#1c1c30; --muted:#5f5f7c; --ok:#047857;
+  --accent:#4f46e5; --accent2:#4338ca; --today:#e0e7ff;
+}
+:root[data-theme="light"] body{background:var(--bg);color:var(--text)}
+:root[data-theme="light"] .snav.active{color:#1c1c30}
+:root[data-theme="light"] .cal-day.other-month{background:#e9e9f2}
+:root[data-theme="light"] .cal-day.weekend-day{background:#f0f0f6}
+:root[data-theme="light"] .cal-head-cell.weekend{color:#6366f1aa}
+:root[data-theme="light"] .cal-event{color:#33334d !important}
+:root[data-theme="light"] .lc-tag{color:#6d28d9}
+:root[data-theme="light"] .act:hover{color:#b45309}
+:root[data-theme="light"] .act.adiantar:hover{color:#0e7490}
+:root[data-theme="light"] .mat-pct{color:#26263f !important}
+
+/* ── CONTAGEM REGRESSIVA DA PROVA (item 8) ── */
+.sidebar-countdown{padding:12px 14px}
+.cd-num{font-size:1.6rem;font-weight:800;color:#818cf8;line-height:1}
+.cd-sub{font-size:.7rem;color:var(--muted);margin-top:3px}
+.cd-warn{
+  margin-top:8px;font-size:.66rem;line-height:1.35;color:#fbbf24;
+  background:#f59e0b12;border:1px solid #f59e0b33;border-radius:7px;padding:6px 8px;
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head" id="m-head">Reagendar Aula</div>
+    <div class="modal-sub" id="m-sub">Escolha a nova data</div>
+    <div class="modal-lesson-box" id="m-lesson"></div>
+    <div class="qbtns" id="m-qbtns"></div>
+    <div class="date-row">
+      <input type="date" class="date-inp" id="m-date">
+      <button class="btn-move" onclick="confirmMove()">Mover</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-reset" id="m-reset-btn" onclick="resetDate()">Restaurar data original</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    Cronograma Gran
+    <span>BB — Agente TI 2026</span>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="snav active" data-view="mes" onclick="switchView('mes',this)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Mês
+    </button>
+    <button class="snav" data-view="hoje" onclick="switchView('hoje',this)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.78" y2="4.22"/></svg>
+      Hoje
+    </button>
+    <button class="snav" data-view="semana" onclick="switchView('semana',this)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+      Semana
+    </button>
+    <button class="snav" data-view="materias" onclick="switchView('materias',this)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Matérias
+    </button>
+    <button class="snav" data-view="todas" onclick="switchView('todas',this)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5"/><circle cx="3" cy="12" r="1.5"/><circle cx="3" cy="18" r="1.5"/></svg>
+      Todas as Aulas
+    </button>
+    <div class="sidebar-sep"></div>
+    <button class="snav" onclick="document.getElementById('import-file').click()" title="Importar JSON exportado do Gran Cursos">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importar Gran
+    </button>
+    <input type="file" id="import-file" accept=".json" style="display:none" multiple onchange="handleImportFiles(event)">
+    <div class="sidebar-sep"></div>
+    <a class="snav" href="plano-estudos.html">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Plano de Estudos
+    </a>
+  </nav>
+  <div class="sidebar-sep"></div>
+  <div class="sidebar-stats">
+    <div class="stat-label">Progresso Geral</div>
+    <div class="stat-row">
+      <div><div class="stat-val" id="sb-pct">0%</div><div class="stat-sub">concluído</div></div>
+      <div style="text-align:right"><div class="stat-val" id="sb-done">0</div><div class="stat-sub">de <span id="sb-total">0</span> aulas</div></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="sb-prog" style="width:0%"></div></div>
+    <div class="stat-row" style="margin-top:4px">
+      <div><div class="stat-val" id="sb-today">0</div><div class="stat-sub">hoje</div></div>
+      <div style="text-align:right"><div class="stat-val" id="sb-week">0</div><div class="stat-sub">esta semana</div></div>
+    </div>
+  </div>
+  <div class="sidebar-sep"></div>
+  <div class="sidebar-countdown">
+    <div class="stat-label">Contagem regressiva</div>
+    <div class="cd-num" id="cd-days">—</div>
+    <div class="cd-sub">até a prova · <span id="cd-date">13/11/2026</span></div>
+    <div class="cd-warn">
+      ⚠️ <strong>Data estimada, não confirmada.</strong> O edital oficial ainda não foi
+      publicado — 13/11/2026 é uma projeção e pode mudar.
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="main-header">
+    <div class="month-nav">
+      <button class="nav-arrow" onclick="prevMonth()">‹</button>
+      <h2 id="month-title">Julho de 2026</h2>
+      <button class="nav-arrow" onclick="nextMonth()">›</button>
+    </div>
+    <div class="header-right">
+      <button class="today-btn" onclick="goToday()">Hoje</button>
+      <div class="view-tabs" id="vtabs-cal" style="display:none">
+        <button class="vtab active" onclick="setCalView('mes')">Mês</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEWS -->
+  <div class="scroll-area" id="view-mes">
+    <div class="cal-head-row">
+      <div class="cal-head-cell weekend">Dom</div>
+      <div class="cal-head-cell">Seg</div>
+      <div class="cal-head-cell">Ter</div>
+      <div class="cal-head-cell">Qua</div>
+      <div class="cal-head-cell">Qui</div>
+      <div class="cal-head-cell">Sex</div>
+      <div class="cal-head-cell weekend">Sáb</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <div class="scroll-area" id="view-hoje" style="display:none">
+    <div class="content-pad" id="hoje-content"></div>
+  </div>
+
+  <div class="scroll-area" id="view-semana" style="display:none">
+    <div class="content-pad" id="semana-content"></div>
+  </div>
+
+  <div class="scroll-area" id="view-materias" style="display:none">
+    <div class="content-pad" id="materias-content"></div>
+  </div>
+
+  <div class="scroll-area" id="view-todas" style="display:none">
+    <div class="content-pad" id="todas-content"></div>
+  </div>
+</div>
+
+<script>
+/* ── CORES ── */
+const MC = {
+  'Língua Portuguesa':          {c:'#a855f7',bg:'#a855f718',b:'#a855f740'},
+  'Matemática':                  {c:'#3b82f6',bg:'#3b82f618',b:'#3b82f640'},
+  'Língua Inglesa':              {c:'#ec4899',bg:'#ec489918',b:'#ec489940'},
+  'Probabilidade e Estatística': {c:'#06b6d4',bg:'#06b6d418',b:'#06b6d440'},
+  'Conhecimentos Bancários':     {c:'#f59e0b',bg:'#f59e0b18',b:'#f59e0b40'},
+  'Atualidades do Mercado Financeiro':{c:'#10b981',bg:'#10b98118',b:'#10b98140'},
+  'Tecnologia da Informação':    {c:'#ef4444',bg:'#ef444418',b:'#ef444440'},
+  'Inteligência Emocional':      {c:'#f97316',bg:'#f9731618',b:'#f9731640'},
+  'Reprise/Eventos':             {c:'#7777bb',bg:'#7777bb18',b:'#7777bb40'},
+  'Redação Discursiva':          {c:'#8b5cf6',bg:'#8b5cf618',b:'#8b5cf640'},
+};
+function mc(m){return MC[m]||{c:'#7777aa',bg:'#7777aa18',b:'#7777aa40'};}
+function shortMat(m){
+  const map={
+    'Língua Portuguesa':'Port.',
+    'Matemática':'Mat.',
+    'Língua Inglesa':'Inglês',
+    'Probabilidade e Estatística':'Prob. e Est.',
+    'Conhecimentos Bancários':'C. Bancários',
+    'Atualidades do Mercado Financeiro':'Atualidades',
+    'Tecnologia da Informação':'TI',
+    'Inteligência Emocional':'Int. Emoc.',
+    'Reprise/Eventos':'Reprise',
+    'Redação Discursiva':'Redação',
+  };
+  return map[m]||m;
+}
+
+/* ── DADOS DO CRONOGRAMA (Gran Cursos — BB Agente TI) ── */
+const BASE_LESSONS = [
+  // ─── JULHO 2026 ───
+  // Jul 2 (Qui)
+  {id:'lp01',m:'Língua Portuguesa',n:1,t:'Apresentação e Ortografia',d:'2026-07-02',h:'23:00',he:'23:27'},
+  {id:'lp02',m:'Língua Portuguesa',n:2,t:'Ortografia — Acentuação',d:'2026-07-02',h:'23:28',he:'23:59'},
+  // Jul 3 (Sex)
+  {id:'li01',m:'Língua Inglesa',n:1,t:'Compreensão e Interpretação de Texto I',d:'2026-07-03',h:'23:00',he:'23:30'},
+  {id:'li02',m:'Língua Inglesa',n:2,t:'Compreensão e Interpretação de Texto II',d:'2026-07-03',h:'23:31',he:'23:59'},
+  // Jul 4 (Sáb)
+  {id:'mat01',m:'Matemática',n:1,t:'Conjuntos Numéricos',d:'2026-07-04',h:'08:08',he:'08:45'},
+  {id:'mat02',m:'Matemática',n:2,t:'Intervalos Reais',d:'2026-07-04',h:'08:46',he:'09:18'},
+  {id:'li03',m:'Língua Inglesa',n:3,t:'Compreensão e Interpretação de Texto III',d:'2026-07-04',h:'09:20',he:'09:50'},
+  // Jul 5 (Dom)
+  {id:'ie01',m:'Inteligência Emocional',n:2,t:'Protagonista, Coadjuvante e Figurante',d:'2026-07-05',h:'08:00',he:'08:12'},
+  {id:'rv01',m:'Reprise/Eventos',n:1,t:'Quando irá Sair o Edital? Expectativas',d:'2026-07-05',h:'08:13',he:'09:08'},
+  {id:'rv02',m:'Reprise/Eventos',n:2,t:'Edital ainda em 2025? Análise do Mercado',d:'2026-07-05',h:'09:09',he:'09:47'},
+  // Jul 6 (Seg)
+  {id:'pe04',m:'Probabilidade e Estatística',n:4,t:'Estatística Descritiva — Medidas de Tendência',d:'2026-07-06',h:'19:00',he:'19:15'},
+  {id:'cb03',m:'Conhecimentos Bancários',n:3,t:'Estrutura do Sistema Financeiro Nacional',d:'2026-07-06',h:'19:16',he:'19:38'},
+  {id:'cb04',m:'Conhecimentos Bancários',n:4,t:'Revisão em Questões do SFN',d:'2026-07-06',h:'19:39',he:'20:00'},
+  {id:'mat03',m:'Matemática',n:3,t:'Expressões Numéricas',d:'2026-07-06',h:'20:02',he:'20:30'},
+  // Jul 7 (Ter)
+  {id:'rv05',m:'Reprise/Eventos',n:5,t:'Plano de Estudos Pré-Edital',d:'2026-07-07',h:'23:00',he:'23:13'},
+  {id:'rv06',m:'Reprise/Eventos',n:6,t:'Curso Gratuito: Inglês | Blind Answers',d:'2026-07-07',h:'23:14',he:'23:59'},
+  {id:'li04',m:'Língua Inglesa',n:4,t:'Vocabulário em Contexto I',d:'2026-07-07',h:'22:50',he:'23:00'},
+  // Jul 8 (Qua)
+  {id:'rv07',m:'Reprise/Eventos',n:7,t:'Curso Gratuito: Inglês | Blind Answers II',d:'2026-07-08',h:'23:00',he:'23:34'},
+  {id:'lp05',m:'Língua Portuguesa',n:5,t:'Ortografia — Hífen — Exercícios',d:'2026-07-08',h:'23:35',he:'23:59'},
+  // Jul 9 (Qui)
+  {id:'lp06',m:'Língua Portuguesa',n:6,t:'Morfologia — Substantivos',d:'2026-07-09',h:'23:00',he:'23:22'},
+  {id:'lp03x',m:'Língua Portuguesa',n:3,t:'Ortografia — Uso das Letras',d:'2026-07-09',h:'23:23',he:'23:44'},
+  {id:'li06',m:'Língua Inglesa',n:6,t:'Compreensão Interpretação de Texto IV',d:'2026-07-09',h:'23:45',he:'23:59'},
+  // Jul 10 (Sex)
+  {id:'li06b',m:'Língua Inglesa',n:6,t:'Compreensão Interpretação de Texto',d:'2026-07-10',h:'23:00',he:'23:16'},
+  {id:'mat05',m:'Matemática',n:5,t:'Frações I',d:'2026-07-10',h:'23:17',he:'23:45'},
+  {id:'mat06',m:'Matemática',n:6,t:'Frações II',d:'2026-07-10',h:'23:46',he:'23:59'},
+  // Jul 11 (Sáb)
+  {id:'amf05',m:'Atualidades do Mercado Financeiro',n:5,t:'SupTech e Regulação Financeira',d:'2026-07-11',h:'08:13',he:'08:39'},
+  {id:'amf06',m:'Atualidades do Mercado Financeiro',n:6,t:'BCD e SEP — Conceitos',d:'2026-07-11',h:'08:40',he:'09:19'},
+  {id:'mat07',m:'Matemática',n:7,t:'Números Decimais',d:'2026-07-11',h:'09:22',he:'09:55'},
+  // Jul 12 (Dom)
+  {id:'rv08',m:'Reprise/Eventos',n:8,t:'Curso Gratuito: Inglês | Teoria e Gramática',d:'2026-07-12',h:'08:00',he:'09:08'},
+  {id:'lp07',m:'Língua Portuguesa',n:7,t:'Morfologia II — Adjetivos',d:'2026-07-12',h:'09:10',he:'09:46'},
+  {id:'lp08',m:'Língua Portuguesa',n:8,t:'Morfologia III — Pronomes',d:'2026-07-12',h:'09:49',he:'10:30'},
+  // Jul 13 (Seg)
+  {id:'cb07',m:'Conhecimentos Bancários',n:7,t:'SFN — Competências e Órgãos I',d:'2026-07-13',h:'19:00',he:'19:29'},
+  {id:'cb08',m:'Conhecimentos Bancários',n:8,t:'SFN — Competências e Órgãos II',d:'2026-07-13',h:'19:30',he:'19:56'},
+  {id:'ti07',m:'Tecnologia da Informação',n:7,t:'Tipos de Aprendizado em ML III',d:'2026-07-13',h:'19:57',he:'20:22'},
+  {id:'mat08',m:'Matemática',n:8,t:'Operações com Frações',d:'2026-07-13',h:'20:25',he:'20:50'},
+  // Jul 14 (Ter)
+  {id:'lp09',m:'Língua Portuguesa',n:9,t:'Morfologia IV — Verbos',d:'2026-07-14',h:'23:00',he:'23:35'},
+  {id:'lp10',m:'Língua Portuguesa',n:10,t:'Morfologia — Exercícios',d:'2026-07-14',h:'23:36',he:'23:59'},
+  // Jul 15 (Qua)
+  {id:'li09',m:'Língua Inglesa',n:9,t:'Compreensão e Interpretação de Texto V',d:'2026-07-15',h:'23:24',he:'23:51'},
+  {id:'li10',m:'Língua Inglesa',n:10,t:'Compreensão e Interpretação de Texto VI',d:'2026-07-15',h:'23:51',he:'23:59'},
+  // Jul 16 (Qui)
+  {id:'mat09',m:'Matemática',n:9,t:'Potenciação I',d:'2026-07-16',h:'23:23',he:'23:44'},
+  {id:'mat10',m:'Matemática',n:10,t:'Potenciação II',d:'2026-07-16',h:'23:45',he:'23:59'},
+  // Jul 17 (Sex)
+  {id:'amf09',m:'Atualidades do Mercado Financeiro',n:9,t:'Shadow Banking',d:'2026-07-17',h:'23:21',he:'23:53'},
+  {id:'amf10',m:'Atualidades do Mercado Financeiro',n:10,t:'Novos Modelos de Negócios Financeiros',d:'2026-07-17',h:'23:34',he:'23:59'},
+  // Jul 18 (Sáb)
+  {id:'pe09',m:'Probabilidade e Estatística',n:9,t:'Estatística Descritiva — Variância',d:'2026-07-18',h:'08:32',he:'08:54'},
+  {id:'pe10',m:'Probabilidade e Estatística',n:10,t:'Estatística Descritiva — Desvio Padrão',d:'2026-07-18',h:'08:55',he:'09:28'},
+  {id:'li11',m:'Língua Inglesa',n:11,t:'Compreensão e Interpretação VII',d:'2026-07-18',h:'09:30',he:'10:00'},
+  // Jul 19 (Dom)
+  {id:'li12',m:'Língua Inglesa',n:12,t:'Compreensão e Interpretação VIII',d:'2026-07-19',h:'08:24',he:'09:04'},
+  {id:'mat11',m:'Matemática',n:11,t:'Radiciação I',d:'2026-07-19',h:'09:05',he:'09:36'},
+  {id:'mat12',m:'Matemática',n:12,t:'Radiciação II',d:'2026-07-19',h:'09:38',he:'10:10'},
+  // Jul 20 (Seg)
+  {id:'rv09',m:'Reprise/Eventos',n:9,t:'O que esperar para as Vagas de Agente TI',d:'2026-07-20',h:'19:00',he:'19:21'},
+  {id:'rv10',m:'Reprise/Eventos',n:10,t:'Mapeando a Prova: Atualidades do Mercado',d:'2026-07-20',h:'19:22',he:'20:17'},
+  {id:'lp13x',m:'Língua Portuguesa',n:13,t:'Sintaxe — Sujeito II',d:'2026-07-20',h:'20:18',he:'20:52'},
+  // Jul 21 (Ter)
+  {id:'mat13',m:'Matemática',n:13,t:'Mínimo Múltiplo Comum (MMC)',d:'2026-07-21',h:'23:00',he:'23:03'},
+  {id:'mat14',m:'Matemática',n:14,t:'Máximo Divisor Comum (MDC)',d:'2026-07-21',h:'23:04',he:'23:29'},
+  {id:'amf13',m:'Atualidades do Mercado Financeiro',n:13,t:'Arranjos de Pagamentos I',d:'2026-07-21',h:'23:30',he:'23:59'},
+  // Jul 22 (Qua)
+  {id:'amf14',m:'Atualidades do Mercado Financeiro',n:14,t:'Arranjos de Pagamentos II',d:'2026-07-22',h:'23:00',he:'23:34'},
+  {id:'pe13',m:'Probabilidade e Estatística',n:13,t:'Estatística Inferencial — Intervalo de Confiança',d:'2026-07-22',h:'23:35',he:'23:53'},
+  {id:'pe14',m:'Probabilidade e Estatística',n:14,t:'Estatística Inferencial — Testes de Hipótese',d:'2026-07-22',h:'23:54',he:'23:59'},
+  // Jul 23 (Qui)
+  {id:'cb_op2',m:'Conhecimentos Bancários',n:2,t:'Operações Bancárias II',d:'2026-07-23',h:'23:20',he:'23:48'},
+  {id:'cb_dep',m:'Conhecimentos Bancários',n:9,t:'Definição de Depósito à Vista',d:'2026-07-23',h:'23:49',he:'23:59'},
+  {id:'pe15',m:'Probabilidade e Estatística',n:15,t:'Estatística Inferencial — Regressão Linear',d:'2026-07-23',h:'23:00',he:'23:19'},
+  // Jul 24 (Sex)
+  {id:'ti13',m:'Tecnologia da Informação',n:13,t:'Regressão Logística',d:'2026-07-24',h:'23:24',he:'23:40'},
+  {id:'ti14',m:'Tecnologia da Informação',n:14,t:'K-NN — K Nearest Neighbors',d:'2026-07-24',h:'23:41',he:'23:58'},
+  {id:'cb_def2',m:'Conhecimentos Bancários',n:10,t:'Definição de Depósito a Prazo',d:'2026-07-24',h:'23:00',he:'23:23'},
+  // Jul 25 (Sáb)
+  {id:'rv11',m:'Reprise/Eventos',n:11,t:'Técnicas de Prova: Como Ganhar Tempo',d:'2026-07-25',h:'08:00',he:'08:42'},
+  {id:'rv12',m:'Reprise/Eventos',n:12,t:'60 Questões em 3 dias | Conhecimentos Bancários',d:'2026-07-25',h:'08:43',he:'10:02'},
+  {id:'lp15',m:'Língua Portuguesa',n:15,t:'Sujeito IV — Tipos e Classificação',d:'2026-07-25',h:'10:03',he:'10:27'},
+  // Jul 26 (Dom)
+  {id:'pe16',m:'Probabilidade e Estatística',n:16,t:'Estatística Inferencial — ANOVA',d:'2026-07-26',h:'08:00',he:'08:36'},
+  {id:'cb_inv1',m:'Conhecimentos Bancários',n:4,t:'Noções Gerais de Investimentos',d:'2026-07-26',h:'08:37',he:'09:18'},
+  {id:'cb_inv2',m:'Conhecimentos Bancários',n:5,t:'Investimentos em Renda Variável',d:'2026-07-26',h:'09:19',he:'09:55'},
+  // Jul 27 (Seg)
+  {id:'amf17',m:'Atualidades do Mercado Financeiro',n:17,t:'Operações de Câmbio I',d:'2026-07-27',h:'19:00',he:'19:24'},
+  {id:'amf18',m:'Atualidades do Mercado Financeiro',n:18,t:'Operações de Câmbio II',d:'2026-07-27',h:'19:25',he:'19:53'},
+  {id:'pe17',m:'Probabilidade e Estatística',n:17,t:'Probabilidade — Conceitos Básicos',d:'2026-07-27',h:'19:56',he:'20:26'},
+  // Jul 28 (Ter)
+  {id:'lp20',m:'Língua Portuguesa',n:20,t:'Predicação Verbal III',d:'2026-07-28',h:'23:00',he:'23:16'},
+  {id:'li19',m:'Língua Inglesa',n:19,t:'Itens Gramaticais Relevantes para a Prova I',d:'2026-07-28',h:'23:17',he:'23:41'},
+  {id:'li20',m:'Língua Inglesa',n:20,t:'Itens Gramaticais Relevantes para a Prova II',d:'2026-07-28',h:'23:42',he:'23:59'},
+  // Jul 29 (Qua)
+  {id:'mat19',m:'Matemática',n:19,t:'Divisão Proporcional',d:'2026-07-29',h:'23:08',he:'23:39'},
+  {id:'mat20',m:'Matemática',n:20,t:'Regra de Três Simples',d:'2026-07-29',h:'23:39',he:'23:59'},
+  // Jul 30 (Qui)
+  {id:'amf19',m:'Atualidades do Mercado Financeiro',n:19,t:'Operações Ativas — Crédito',d:'2026-07-30',h:'23:03',he:'23:39'},
+  {id:'amf20',m:'Atualidades do Mercado Financeiro',n:20,t:'Correspondentes Bancários',d:'2026-07-30',h:'23:40',he:'23:59'},
+  {id:'mat20b',m:'Matemática',n:20,t:'Regra de Três — Exercícios',d:'2026-07-30',h:'23:00',he:'23:02'},
+  // Jul 31 (Sex)
+  {id:'pe19',m:'Probabilidade e Estatística',n:19,t:'Probabilidade — Definição Clássica',d:'2026-07-31',h:'23:00',he:'23:23'},
+  {id:'pe20',m:'Probabilidade e Estatística',n:20,t:'Probabilidade — Definição Frequentista',d:'2026-07-31',h:'23:24',he:'23:58'},
+
+  // ─── AGOSTO 2026 ───
+  // Ago 1 (Sáb)
+  {id:'cb_ab1',m:'Conhecimentos Bancários',n:8,t:'Abertura e Movimentação de Contas',d:'2026-08-01',h:'08:00',he:'08:23'},
+  {id:'cb_ab2',m:'Conhecimentos Bancários',n:9,t:'Abertura e Movimentação II',d:'2026-08-01',h:'08:24',he:'08:53'},
+  {id:'ti19',m:'Tecnologia da Informação',n:19,t:'K-Means — Algoritmo',d:'2026-08-01',h:'08:54',he:'09:19'},
+  // Ago 3 (Seg)
+  {id:'ti01',m:'Tecnologia da Informação',n:1,t:'Fundamentos de IA e Machine Learning',d:'2026-08-03'},
+  {id:'ti02',m:'Tecnologia da Informação',n:2,t:'Aprendizado Supervisionado',d:'2026-08-03'},
+  // Ago 4 (Ter)
+  {id:'ti03',m:'Tecnologia da Informação',n:3,t:'Aprendizado Não-Supervisionado',d:'2026-08-04'},
+  {id:'mat_r1',m:'Matemática',n:21,t:'Revisão — Frações e Porcentagem',d:'2026-08-04'},
+  // Ago 5 (Qua)
+  {id:'ti04',m:'Tecnologia da Informação',n:4,t:'Redes Neurais e Deep Learning',d:'2026-08-05'},
+  {id:'pe_r1',m:'Probabilidade e Estatística',n:21,t:'Revisão — Estatística Descritiva',d:'2026-08-05'},
+  // Ago 6 (Qui)
+  {id:'ti05',m:'Tecnologia da Informação',n:5,t:'Processamento de Linguagem Natural (PLN)',d:'2026-08-06'},
+  {id:'cb_cr1',m:'Conhecimentos Bancários',n:11,t:'Crédito Rural e Habitacional',d:'2026-08-06'},
+  // Ago 7 (Sex)
+  {id:'ti06',m:'Tecnologia da Informação',n:6,t:'Visão Computacional',d:'2026-08-07'},
+  {id:'amf_r1',m:'Atualidades do Mercado Financeiro',n:21,t:'Revisão — Sistema Financeiro',d:'2026-08-07'},
+  // Ago 8 (Sáb)
+  {id:'ti08',m:'Tecnologia da Informação',n:8,t:'IA Generativa e LLMs',d:'2026-08-08'},
+  {id:'lp_r1',m:'Língua Portuguesa',n:16,t:'Sintaxe — Predicado',d:'2026-08-08'},
+  // Ago 10 (Seg)
+  {id:'ns01',m:'Tecnologia da Informação',n:20,t:'NoSQL — Tipos e Características',d:'2026-08-10'},
+  {id:'lp_s1',m:'Língua Portuguesa',n:17,t:'Sintaxe — Termos Essenciais',d:'2026-08-10'},
+  // Ago 11 (Ter)
+  {id:'ns02',m:'Tecnologia da Informação',n:21,t:'MongoDB — Banco de Documentos',d:'2026-08-11'},
+  {id:'cb_seg',m:'Conhecimentos Bancários',n:12,t:'Seguro de Vida e Previdência',d:'2026-08-11'},
+  // Ago 12 (Qua)
+  {id:'ns03',m:'Tecnologia da Informação',n:22,t:'Redis — Banco Chave-Valor',d:'2026-08-12'},
+  {id:'lp18',m:'Língua Portuguesa',n:18,t:'Regência Verbal e Nominal',d:'2026-08-12'},
+  // Ago 13 (Qui)
+  {id:'ns04',m:'Tecnologia da Informação',n:23,t:'Big Data — Os 5 Vs',d:'2026-08-13'},
+  {id:'li_r1',m:'Língua Inglesa',n:13,t:'Gramática — Present Perfect',d:'2026-08-13'},
+  // Ago 14 (Sex)
+  {id:'ns05',m:'Tecnologia da Informação',n:24,t:'Hadoop, Spark e MapReduce',d:'2026-08-14'},
+  {id:'pe_inf',m:'Probabilidade e Estatística',n:22,t:'Inferência Estatística Avançada',d:'2026-08-14'},
+  // Ago 15 (Sáb)
+  {id:'ns06',m:'Tecnologia da Informação',n:25,t:'Data Lake e Data Warehouse',d:'2026-08-15'},
+  {id:'lp19',m:'Língua Portuguesa',n:19,t:'Crase e Pontuação',d:'2026-08-15'},
+  // Ago 17 (Seg)
+  {id:'ns07',m:'Tecnologia da Informação',n:26,t:'Business Intelligence — Conceitos',d:'2026-08-17'},
+  {id:'cb_cob',m:'Conhecimentos Bancários',n:13,t:'Cobrança e Pagamento de Títulos',d:'2026-08-17'},
+  // Ago 18 (Ter)
+  {id:'ns08',m:'Tecnologia da Informação',n:27,t:'ETL — Extract, Transform, Load',d:'2026-08-18'},
+  {id:'li_r2',m:'Língua Inglesa',n:14,t:'Gramática — Tempos Verbais',d:'2026-08-18'},
+  // Ago 19 (Qua)
+  {id:'bd01',m:'Tecnologia da Informação',n:28,t:'Banco de Dados — Modelo Relacional',d:'2026-08-19'},
+  {id:'lp_fin',m:'Língua Portuguesa',n:20,t:'Revisão Final — Língua Portuguesa',d:'2026-08-19'},
+  // Ago 20 (Qui)
+  {id:'bd02',m:'Tecnologia da Informação',n:29,t:'SQL — Linguagem de Consulta',d:'2026-08-20'},
+  {id:'pe_fin',m:'Probabilidade e Estatística',n:23,t:'Revisão Final — Probabilidade',d:'2026-08-20'},
+  // Ago 21 (Sex)
+  {id:'bd03',m:'Tecnologia da Informação',n:30,t:'SQL — DML e DDL',d:'2026-08-21'},
+  {id:'amf_fin',m:'Atualidades do Mercado Financeiro',n:22,t:'Revisão — Atualidades Financeiras',d:'2026-08-21'},
+  // Ago 22 (Sáb)
+  {id:'bd04',m:'Tecnologia da Informação',n:31,t:'SQL — Junções e Subqueries',d:'2026-08-22'},
+  {id:'cb_fin1',m:'Conhecimentos Bancários',n:14,t:'Crimes Financeiros e COAF',d:'2026-08-22'},
+  // Ago 24 (Seg)
+  {id:'redes01',m:'Tecnologia da Informação',n:32,t:'Redes — Modelo OSI e TCP/IP',d:'2026-08-24'},
+  {id:'li_fin',m:'Língua Inglesa',n:15,t:'Revisão — Compreensão de Texto',d:'2026-08-24'},
+  // Ago 25 (Ter)
+  {id:'redes02',m:'Tecnologia da Informação',n:33,t:'Redes — Protocolos e Endereçamento IP',d:'2026-08-25'},
+  {id:'cb_bc',m:'Conhecimentos Bancários',n:15,t:'Banco Central do Brasil — Funções',d:'2026-08-25'},
+  // Ago 26 (Qua)
+  {id:'redes03',m:'Tecnologia da Informação',n:34,t:'Redes — Equipamentos e Topologias',d:'2026-08-26'},
+  {id:'red01',m:'Redação Discursiva',n:1,t:'Estrutura da Redação Discursiva',d:'2026-08-26'},
+  // Ago 27 (Qui)
+  {id:'redes04',m:'Tecnologia da Informação',n:35,t:'Redes — Wi-Fi e Segurança em Redes',d:'2026-08-27'},
+  {id:'red02',m:'Redação Discursiva',n:2,t:'Argumentação e Coesão',d:'2026-08-27'},
+  // Ago 28 (Sex)
+  {id:'seg01',m:'Tecnologia da Informação',n:36,t:'Segurança da Informação — Conceitos',d:'2026-08-28'},
+  {id:'red03',m:'Redação Discursiva',n:3,t:'Dissertação-Argumentativa na Prática',d:'2026-08-28'},
+  // Ago 29 (Sáb)
+  {id:'seg02',m:'Tecnologia da Informação',n:37,t:'Criptografia — Simétrica e Assimétrica',d:'2026-08-29'},
+  {id:'cb_fin2',m:'Conhecimentos Bancários',n:16,t:'Revisão — Conhecimentos Bancários',d:'2026-08-29'},
+
+  // ─── SETEMBRO 2026 ───
+  {id:'seg03',m:'Tecnologia da Informação',n:38,t:'Certificados Digitais e PKI',d:'2026-09-01'},
+  {id:'red04',m:'Redação Discursiva',n:4,t:'Elaboração de Proposta de Intervenção',d:'2026-09-01'},
+  {id:'seg04',m:'Tecnologia da Informação',n:39,t:'Firewall, IDS e IPS',d:'2026-09-02'},
+  {id:'red05',m:'Redação Discursiva',n:5,t:'Prática: Escreva uma Dissertação',d:'2026-09-02'},
+  {id:'cloud01',m:'Tecnologia da Informação',n:40,t:'Cloud Computing — IaaS, PaaS, SaaS',d:'2026-09-03'},
+  {id:'cloud02',m:'Tecnologia da Informação',n:41,t:'Cloud — AWS, Azure e Google Cloud',d:'2026-09-04'},
+  {id:'cloud03',m:'Tecnologia da Informação',n:42,t:'Cloud — Segurança e Conformidade',d:'2026-09-07'},
+  {id:'cloud04',m:'Tecnologia da Informação',n:43,t:'Cloud — Containers e Kubernetes',d:'2026-09-08'},
+  {id:'cloud05',m:'Tecnologia da Informação',n:44,t:'Cloud — Serverless e Microsserviços',d:'2026-09-09'},
+  {id:'cloud06',m:'Tecnologia da Informação',n:45,t:'Cloud — Revisão e Questões',d:'2026-09-10'},
+  {id:'java01',m:'Tecnologia da Informação',n:46,t:'Java — Fundamentos da Linguagem',d:'2026-09-14'},
+  {id:'java02',m:'Tecnologia da Informação',n:47,t:'Java — Orientação a Objetos I',d:'2026-09-15'},
+  {id:'java03',m:'Tecnologia da Informação',n:48,t:'Java — Orientação a Objetos II',d:'2026-09-16'},
+  {id:'java04',m:'Tecnologia da Informação',n:49,t:'Java — Coleções e Generics',d:'2026-09-17'},
+  {id:'java05',m:'Tecnologia da Informação',n:50,t:'Java — Tratamento de Exceções',d:'2026-09-18'},
+  {id:'java06',m:'Tecnologia da Informação',n:51,t:'Java — Entrada e Saída (I/O)',d:'2026-09-21'},
+  {id:'java07',m:'Tecnologia da Informação',n:52,t:'Java — Multithreading',d:'2026-09-22'},
+  {id:'java08',m:'Tecnologia da Informação',n:53,t:'Java — JDBC e Banco de Dados',d:'2026-09-23'},
+  {id:'java09',m:'Tecnologia da Informação',n:54,t:'Java — Spring Framework',d:'2026-09-24'},
+  {id:'java10',m:'Tecnologia da Informação',n:55,t:'Java — Revisão e Questões',d:'2026-09-25'},
+  {id:'dev01',m:'Tecnologia da Informação',n:56,t:'Dev. Sistemas — Metodologias Ágeis',d:'2026-09-28'},
+  {id:'dev02',m:'Tecnologia da Informação',n:57,t:'Dev. Sistemas — Scrum e Kanban',d:'2026-09-29'},
+  {id:'dev03',m:'Tecnologia da Informação',n:58,t:'Dev. Sistemas — Padrões de Projeto',d:'2026-09-30'},
+
+  // ─── OUTUBRO 2026 ───
+  {id:'dev04',m:'Tecnologia da Informação',n:59,t:'Dev. Sistemas — SOLID e Clean Code',d:'2026-10-01'},
+  {id:'dev05',m:'Tecnologia da Informação',n:60,t:'Dev. Sistemas — Testes de Software',d:'2026-10-02'},
+  {id:'dev06',m:'Tecnologia da Informação',n:61,t:'Dev. Sistemas — DevOps e CI/CD',d:'2026-10-05'},
+  {id:'dev07',m:'Tecnologia da Informação',n:62,t:'Dev. Sistemas — Revisão',d:'2026-10-06'},
+  {id:'py01',m:'Tecnologia da Informação',n:63,t:'Python — Fundamentos',d:'2026-10-07'},
+  {id:'py02',m:'Tecnologia da Informação',n:64,t:'Python — Estruturas de Dados',d:'2026-10-08'},
+  {id:'py03',m:'Tecnologia da Informação',n:65,t:'Python — Funções e Módulos',d:'2026-10-09'},
+  {id:'py04',m:'Tecnologia da Informação',n:66,t:'Python — Manipulação de Arquivos',d:'2026-10-12'},
+  {id:'py05',m:'Tecnologia da Informação',n:67,t:'Python — Pandas e NumPy',d:'2026-10-13'},
+  {id:'py06',m:'Tecnologia da Informação',n:68,t:'Python — Matplotlib e Visualização',d:'2026-10-14'},
+  {id:'py07',m:'Tecnologia da Informação',n:69,t:'Python — Machine Learning com Scikit-learn',d:'2026-10-15'},
+  {id:'py08',m:'Tecnologia da Informação',n:70,t:'Python — Projetos e Revisão',d:'2026-10-16'},
+  {id:'rev01',m:'Reprise/Eventos',n:20,t:'Simulado Completo — BB Agente TI',d:'2026-10-19'},
+  {id:'rev02',m:'Reprise/Eventos',n:21,t:'Correção e Análise do Simulado I',d:'2026-10-20'},
+  {id:'rev03',m:'Reprise/Eventos',n:22,t:'Pontos Críticos — TI Aprofundado',d:'2026-10-21'},
+  {id:'rev04',m:'Reprise/Eventos',n:23,t:'Revisão de Matemática — Questões CESGRANRIO',d:'2026-10-22'},
+  {id:'rev05',m:'Reprise/Eventos',n:24,t:'Revisão de Português — Questões CESGRANRIO',d:'2026-10-23'},
+  {id:'rev06',m:'Reprise/Eventos',n:25,t:'Revisão CB e AMF — Questões',d:'2026-10-26'},
+  {id:'rev07',m:'Reprise/Eventos',n:26,t:'Simulado Final — Gabaritando TI',d:'2026-10-27'},
+  {id:'rev08',m:'Reprise/Eventos',n:27,t:'Resolução de Provas Anteriores BB',d:'2026-10-28'},
+  {id:'rev09',m:'Reprise/Eventos',n:28,t:'Estratégia para a Prova',d:'2026-10-29'},
+  {id:'rev10',m:'Reprise/Eventos',n:29,t:'Revisão Intensiva Final',d:'2026-10-30'},
+
+  // ─── NOVEMBRO 2026 ───
+  {id:'fin01',m:'Reprise/Eventos',n:30,t:'Simulado Intensivo — Manhã',d:'2026-11-02'},
+  {id:'fin02',m:'Reprise/Eventos',n:31,t:'Simulado Intensivo — Tarde',d:'2026-11-02'},
+  {id:'fin03',m:'Reprise/Eventos',n:32,t:'Revisão de Pontos Críticos',d:'2026-11-03'},
+  {id:'fin04',m:'Reprise/Eventos',n:33,t:'Dicas Finais e Estratégias de Prova',d:'2026-11-04'},
+  {id:'fin05',m:'Reprise/Eventos',n:34,t:'Plantão de Dúvidas — TI',d:'2026-11-05'},
+  {id:'fin06',m:'Reprise/Eventos',n:35,t:'Plantão de Dúvidas — Matemática e Estatística',d:'2026-11-06'},
+  {id:'fin07',m:'Reprise/Eventos',n:36,t:'Revisão Final — Conhecimentos Bancários',d:'2026-11-09'},
+  {id:'fin08',m:'Reprise/Eventos',n:37,t:'Revisão Final — Língua Portuguesa',d:'2026-11-10'},
+  {id:'fin09',m:'Reprise/Eventos',n:38,t:'Véspera da Prova — Revisão Geral',d:'2026-11-12'},
+  {id:'fin10',m:'Reprise/Eventos',n:39,t:'DIA DA PROVA — Boa sorte! 🎯',d:'2026-11-13'},
+];
+
+/* Data da prova — ESTIMATIVA (sem edital oficial publicado). Ajuste quando o edital sair. */
+const PROVA_DATE = '2026-11-13';
+
+/* ── ESTADO ── */
+const ST_KEY = 'gran_cron_v2';
+let ST = JSON.parse(localStorage.getItem(ST_KEY)||'{}') || {};
+ST.done = ST.done || {}; ST.moves = ST.moves || {};
+function save(){ localStorage.setItem(ST_KEY, JSON.stringify(ST)); }
+function effDate(l){ return ST.moves[l.id] || l.d; }
+function isDone(id){ return !!ST.done[id]; }
+function toggleDone(id){ ST.done[id]=!ST.done[id]; if(!ST.done[id])delete ST.done[id]; save(); render(); }
+
+/* ── IMPORTAÇÃO DO GRAN CURSOS ── */
+let LESSONS = [];
+
+function fixStr(s){
+  if(!s || !/Ã/.test(s)) return s;
+  try {
+    const bytes = new Uint8Array(s.split('').map(c=>c.charCodeAt(0)&0xFF));
+    return new TextDecoder('utf-8').decode(bytes);
+  } catch(e){ return s; }
+}
+
+function normalizeMat(m){
+  m = fixStr(m||'').trim();
+  const map={
+    'Língua Portuguesa':'Língua Portuguesa',
+    'Língua Inglesa':'Língua Inglesa',
+    'Matemática':'Matemática',
+    'Probabilidade e Estatística':'Probabilidade e Estatística',
+    'Conhecimentos Bancários':'Conhecimentos Bancários',
+    'Atualidades do Mercado Financeiro':'Atualidades do Mercado Financeiro',
+    'Tecnologia da Informação':'Tecnologia da Informação',
+    'Inteligência Emocional':'Inteligência Emocional',
+    'Redação Discursiva':'Redação Discursiva',
+    'Reprise Eventos':'Reprise/Eventos',
+    'Reprise':'Reprise/Eventos',
+    'Eventos':'Reprise/Eventos',
+  };
+  return map[m] || m;
+}
+
+function rebuildLessons(){
+  const imported = JSON.parse(localStorage.getItem('gran_import')||'[]');
+  const impMonths = [...new Set(imported.map(l=>l.data.substr(0,7)))];
+  const impFmt = imported.map((l,i)=>({
+    id: '_g'+i,
+    m: normalizeMat(l.materia),
+    n: l.aula,
+    t: l.titulo,
+    d: l.data,
+    h: l.inicio||'',
+    he: l.fim||''
+  }));
+  // Para meses importados, manter apenas eventos de BASE_LESSONS que não existam no Gran (ex: aulas adicionadas manualmente)
+  const impKeys = new Set(impFmt.map(l=>l.m+'|'+l.n+'|'+l.d));
+  const base = BASE_LESSONS.filter(l=>
+    !impMonths.includes(l.d.substr(0,7)) ||
+    !impKeys.has(normalizeMat(l.m)+'|'+l.n+'|'+l.d)
+  );
+  LESSONS.length = 0;
+  [...base, ...impFmt].sort((a,b)=>a.d>b.d?1:a.d<b.d?-1:((a.h||'')>(b.h||'')?1:-1)).forEach(l=>LESSONS.push(l));
+}
+
+function deduplicateSplit(arr){
+  arr.sort((a,b)=>{
+    const da=a.data+(a.inicio||'00:00'), db=b.data+(b.inicio||'00:00');
+    return da<db?-1:da>db?1:0;
+  });
+  const seen = new Set();
+  return arr.filter(l=>{
+    const mat = normalizeMat(l.materia||'');
+    const isReprise = mat === 'Reprise/Eventos';
+    if(isReprise) return true; // Reprises são todos eventos diferentes, manter todos
+    const key = mat + '|' + l.aula + '|' + l.data;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function handleImportFiles(evt){
+  const files = [...evt.target.files];
+  if(!files.length) return;
+  const existing = JSON.parse(localStorage.getItem('gran_import')||'[]');
+  const pending = [];
+  let done = 0;
+  files.forEach(f=>{
+    const r = new FileReader();
+    r.onload = e=>{
+      try{
+        const data = JSON.parse(e.target.result);
+        if(Array.isArray(data)){
+          data.forEach(l=>{
+            pending.push({
+              materia: normalizeMat(l.materia||''),
+              aula: l.aula,
+              titulo: fixStr(l.titulo||''),
+              data: l.data||'',
+              inicio: l.inicio||'',
+              fim: l.fim||''
+            });
+          });
+        }
+      }catch(ex){ showToast('Erro ao ler '+f.name); }
+      done++;
+      if(done === files.length){
+        if(!pending.length){ showToast('Nenhuma aula encontrada nos arquivos.'); return; }
+        const deduped = deduplicateSplit(pending);
+        const newMonths = [...new Set(deduped.map(l=>l.data.substr(0,7)))];
+        const kept = existing.filter(l=>!newMonths.includes(l.data.substr(0,7)));
+        localStorage.setItem('gran_import', JSON.stringify([...kept,...deduped]));
+        rebuildLessons();
+        render();
+        const meses = newMonths.map(m=>{
+          const [y,mo]=m.split('-');
+          return MONTHS_PT[parseInt(mo)-1]+'/'+y;
+        }).join(', ');
+        showToast(`${deduped.length} aulas importadas (${meses})`);
+        evt.target.value = '';
+      }
+    };
+    r.readAsText(f, 'utf-8');
+  });
+}
+
+/* ── NAVEGAÇÃO ── */
+let curView = 'mes';
+let calYear = 2026, calMonth = 6; // 0-indexed: 6 = July
+
+const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DAYS_PT   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function switchView(v, btn){
+  curView = v;
+  document.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  ['mes','hoje','semana','materias','todas'].forEach(id=>{
+    document.getElementById('view-'+id).style.display = id===v?'block':'none';
+  });
+  document.getElementById('vtabs-cal').style.display = v==='mes'?'flex':'none';
+  render();
+}
+
+function prevMonth(){
+  calMonth--;
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+function nextMonth(){
+  calMonth++;
+  if(calMonth>11){calMonth=0;calYear++;}
+  renderCalendar();
+}
+function goToday(){
+  const now=new Date();
+  calYear=now.getFullYear(); calMonth=now.getMonth();
+  switchView('mes', document.querySelector('[data-view="mes"]'));
+}
+
+/* ── HELPERS ── */
+function todayStr(){
+  const n=new Date();
+  return n.getFullYear()+'-'+(String(n.getMonth()+1).padStart(2,'0'))+'-'+(String(n.getDate()).padStart(2,'0'));
+}
+function addDays(ds, n){
+  const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+n);
+  return d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0'))+'-'+(String(d.getDate()).padStart(2,'0'));
+}
+function dateLabel(ds){
+  const [y,m,d]=ds.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const dayName=DAYS_PT[dt.getDay()];
+  return `${dayName}, ${d} de ${MONTHS_PT[m-1]} de ${y}`;
+}
+function lessonsOn(ds){ return LESSONS.filter(l=>effDate(l)===ds).sort((a,b)=>((a.h||'99:99')>(b.h||'99:99')?1:-1)); }
+
+/* ── CALENDARIO ── */
+function renderCalendar(){
+  document.getElementById('month-title').textContent = `${MONTHS_PT[calMonth]} de ${calYear}`;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML='';
+  const today = todayStr();
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const prevDays = new Date(calYear, calMonth, 0).getDate();
+
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+  for(let i=0; i<totalCells; i++){
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+    let ds, isOther=false;
+
+    if(i < firstDay){
+      const d = prevDays - firstDay + i + 1;
+      const m = calMonth===0?11:calMonth-1;
+      const y = calMonth===0?calYear-1:calYear;
+      ds = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      isOther = true;
+    } else if(i >= firstDay + daysInMonth){
+      const d = i - firstDay - daysInMonth + 1;
+      const m = calMonth===11?0:calMonth+1;
+      const y = calMonth===11?calYear+1:calYear;
+      ds = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      isOther = true;
+    } else {
+      const d = i - firstDay + 1;
+      ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    }
+
+    if(isOther) cell.classList.add('other-month');
+    if(ds === today) cell.classList.add('today');
+    const dow = i%7;
+    if(dow===0||dow===6) cell.classList.add('weekend-day');
+
+    const dayNum = document.createElement('div');
+    dayNum.className='day-num';
+    const inner = document.createElement('span');
+    inner.className='day-num-inner';
+    inner.textContent = ds.split('-')[2].replace(/^0/,'');
+    dayNum.appendChild(inner);
+    cell.appendChild(dayNum);
+
+    const lessons = lessonsOn(ds);
+    const MAX_SHOW = 3;
+    const shown = lessons.slice(0, MAX_SHOW);
+    const extra = lessons.length - MAX_SHOW;
+
+    shown.forEach(l=>{
+      const col = mc(l.m);
+      const ev = document.createElement('div');
+      ev.className = 'cal-event' + (isDone(l.id)?' done':'');
+      ev.style.background = col.bg;
+      ev.style.color = col.c;
+      ev.onclick = (e)=>{ e.stopPropagation(); openModal(l.id); };
+      ev.innerHTML = `
+        <div class="ev-dot" style="background:${col.c}"></div>
+        <div class="ev-body">
+          <div class="ev-mat">${shortMat(l.m)} · Aula ${l.n}</div>
+          <div class="ev-title">${l.t}</div>
+          ${l.h?`<div class="ev-time">${l.h}–${l.he}</div>`:''}
+        </div>`;
+      cell.appendChild(ev);
+    });
+
+    if(extra>0){
+      const more = document.createElement('div');
+      more.className='cal-more';
+      more.textContent=`+${extra} mais`;
+      more.onclick=()=>{ showDayPopup(ds); };
+      cell.appendChild(more);
+    }
+
+    grid.appendChild(cell);
+  }
+  updateSidebar();
+}
+
+function showDayPopup(ds){
+  switchView('hoje', null);
+  document.querySelector('[data-view="hoje"]').classList.add('active');
+  document.querySelector('[data-view="mes"]').classList.remove('active');
+  renderHoje(ds);
+}
+
+/* ── HOJE VIEW ── */
+function renderHoje(targetDate){
+  const ds = targetDate||todayStr();
+  const lessons = lessonsOn(ds);
+  const el = document.getElementById('hoje-content');
+
+  if(!lessons.length){
+    el.innerHTML=`<div class="section-title">Hoje — ${dateLabel(ds)}</div><div class="section-sub">Nenhuma aula agendada para hoje.</div><p style="color:var(--muted);font-size:.85rem">Aproveite para revisar ou adiantar aulas! 🎉</p>`;
+    return;
+  }
+  el.innerHTML=`<div class="section-title">Hoje</div><div class="section-sub">${dateLabel(ds)} · ${lessons.length} aulas</div>`+renderLessonList(lessons);
+  updateSidebar();
+}
+
+/* ── SEMANA VIEW ── */
+function renderSemana(){
+  const today = todayStr();
+  const dt = new Date(today+'T12:00:00');
+  const dow = dt.getDay();
+  const monday = addDays(today, -dow);
+
+  let html = `<div class="section-title">Esta Semana</div><div class="section-sub">`;
+  const days=[];
+  for(let i=0;i<7;i++){
+    const ds = addDays(monday, i);
+    days.push(ds);
+  }
+  const from = dateLabel(days[0]).split(', ')[1];
+  const to = dateLabel(days[6]).split(', ')[1];
+  html += `${from} → ${to}</div>`;
+
+  let anyLesson=false;
+  days.forEach(ds=>{
+    const lessons=lessonsOn(ds);
+    if(!lessons.length)return;
+    anyLesson=true;
+    const isToday = ds===today;
+    html+=`<div class="day-block">
+      <div class="day-block-title">
+        ${dateLabel(ds)}
+        ${isToday?'<span class="day-badge" style="background:#1e1b4b;color:#818cf8">Hoje</span>':''}
+        <span style="margin-left:auto;font-size:.68rem">${lessons.length} aulas</span>
+      </div>
+      ${renderLessonList(lessons)}
+    </div>`;
+  });
+  if(!anyLesson) html+=`<p style="color:var(--muted)">Nenhuma aula esta semana.</p>`;
+  document.getElementById('semana-content').innerHTML=html;
+}
+
+/* ── MATÉRIAS VIEW ── */
+function renderMaterias(){
+  const subjects = [...new Set(LESSONS.map(l=>l.m))];
+  let html=`<div class="section-title">Matérias</div><div class="section-sub">Progresso por disciplina</div><div class="mat-grid">`;
+  subjects.forEach(m=>{
+    const col=mc(m);
+    const total=LESSONS.filter(l=>l.m===m).length;
+    const done=LESSONS.filter(l=>l.m===m&&isDone(l.id)).length;
+    const pct=total?Math.round(done/total*100):0;
+    html+=`<div class="mat-card">
+      <div class="mat-head"><div class="mat-dot" style="background:${col.c}"></div><div class="mat-name">${m}</div></div>
+      <div class="mat-pct" style="color:${col.c}">${pct}%</div>
+      <div class="mat-info">${done} de ${total} aulas concluídas</div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${col.c}"></div></div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('materias-content').innerHTML=html;
+}
+
+/* ── TODAS VIEW ── */
+function renderTodas(){
+  const byDate={};
+  LESSONS.forEach(l=>{
+    const ds=effDate(l);
+    if(!byDate[ds])byDate[ds]=[];
+    byDate[ds].push(l);
+  });
+  const dates=Object.keys(byDate).sort();
+  let html=`<div class="section-title">Todas as Aulas</div><div class="section-sub">${LESSONS.length} aulas · ${LESSONS.filter(l=>isDone(l.id)).length} concluídas</div>`;
+  const today=todayStr();
+  dates.forEach(ds=>{
+    const lessons=byDate[ds].sort((a,b)=>((a.h||'99')<(b.h||'99')?-1:1));
+    const isToday=ds===today;
+    html+=`<div class="day-block">
+      <div class="day-block-title">
+        ${dateLabel(ds)}
+        ${isToday?'<span class="day-badge" style="background:#1e1b4b;color:#818cf8">Hoje</span>':''}
+        ${ST.moves[lessons[0]?.id]?'<span class="day-badge" style="background:#a855f712;color:#a855f7">reagendado</span>':''}
+        <span style="margin-left:auto;font-size:.68rem">${lessons.length} aulas</span>
+      </div>
+      ${renderLessonList(lessons)}
+    </div>`;
+  });
+  document.getElementById('todas-content').innerHTML=html;
+}
+
+/* ── RENDER LESSON LIST ── */
+function renderLessonList(lessons){
+  return lessons.map(l=>{
+    const col=mc(l.m); const done=isDone(l.id); const moved=!!ST.moves[l.id];
+    return `<div class="lesson-card ${done?'done':''}" style="border-left-color:${col.c}">
+      <div class="chk ${done?'on':''}" onclick="toggleDone('${l.id}')"></div>
+      <div class="lc-body">
+        <div class="lc-meta">
+          <span class="lc-mat" style="background:${col.bg};color:${col.c}">${shortMat(l.m)}</span>
+          <span class="lc-num">Aula ${l.n}</span>
+          ${moved?'<span class="lc-tag">reagendado</span>':''}
+        </div>
+        <div class="lc-title">${l.t}</div>
+        ${l.h?`<div class="lc-time">${l.h} – ${l.he}</div>`:''}
+        <div class="lc-actions">
+          <button class="act" onclick="openModal('${l.id}','adiar')">⏩ Adiar</button>
+          <button class="act adiantar" onclick="openModal('${l.id}','adiantar')">⏪ Adiantar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── SIDEBAR STATS ── */
+function updateSidebar(){
+  const total=LESSONS.length;
+  const done=LESSONS.filter(l=>isDone(l.id)).length;
+  const pct=total?Math.round(done/total*100):0;
+  const today=todayStr();
+  const todayCount=lessonsOn(today).length;
+  const dt=new Date(today+'T12:00:00');
+  const dow=dt.getDay();
+  let weekCount=0;
+  for(let i=0;i<7;i++) weekCount+=lessonsOn(addDays(today,-dow+i)).length;
+  document.getElementById('sb-pct').textContent=pct+'%';
+  document.getElementById('sb-done').textContent=done;
+  document.getElementById('sb-total').textContent=total;
+  document.getElementById('sb-prog').style.width=pct+'%';
+  document.getElementById('sb-today').textContent=todayCount;
+  document.getElementById('sb-week').textContent=weekCount;
+}
+
+/* ── CONTAGEM REGRESSIVA + AVISO DE ESTIMATIVA (item 8) ── */
+function renderCountdown(){
+  const el = document.getElementById('cd-days');
+  if(!el) return;
+  const [y,m,d] = PROVA_DATE.split('-').map(Number);
+  const alvo = new Date(y, m-1, d); alvo.setHours(0,0,0,0);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const dias = Math.round((alvo - hoje) / 86400000);
+  document.getElementById('cd-date').textContent =
+    `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+  el.textContent = dias > 0 ? `${dias} dias`
+                 : dias === 0 ? 'É hoje!'
+                 : `há ${Math.abs(dias)} dias`;
+}
+
+/* ── MODAL ── */
+let modalId=null, modalDir=null;
+function openModal(id, dir='adiar'){
+  modalId=id; modalDir=dir;
+  const l=LESSONS.find(x=>x.id===id);
+  const col=mc(l.m);
+  const curDate=effDate(l);
+  document.getElementById('m-head').textContent = dir==='adiar'?'Adiar Aula':'Adiantar Aula';
+  document.getElementById('m-sub').textContent = dir==='adiar'?'Mover para uma data posterior':'Mover para uma data anterior';
+  document.getElementById('m-lesson').innerHTML=`<b style="color:${col.c}">${l.m} — Aula ${l.n}</b><br>${l.t}${l.h?`<br><small style="color:var(--muted)">${l.h}–${l.he}</small>`:''}`;
+  document.getElementById('m-date').value=curDate;
+  document.getElementById('m-reset-btn').style.display=ST.moves[id]?'block':'none';
+
+  const qbtns=document.getElementById('m-qbtns');
+  if(dir==='adiar'){
+    qbtns.innerHTML=['1 dia','2 dias','3 dias','1 semana'].map((lbl,i)=>{
+      const nd=addDays(curDate,[1,2,3,7][i]);
+      return `<button class="qbtn" onclick="setQuickDate('${nd}')">${lbl}</button>`;
+    }).join('');
+  } else {
+    qbtns.innerHTML=['Hoje','1 dia antes','2 dias antes','1 semana antes'].map((lbl,i)=>{
+      const nd=[todayStr(),addDays(curDate,-1),addDays(curDate,-2),addDays(curDate,-7)][i];
+      return `<button class="qbtn" onclick="setQuickDate('${nd}')">${lbl}</button>`;
+    }).join('');
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+function setQuickDate(d){ document.getElementById('m-date').value=d; }
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); modalId=null; }
+function confirmMove(){
+  const newDate=document.getElementById('m-date').value;
+  if(!newDate||!modalId)return;
+  const l=LESSONS.find(x=>x.id===modalId);
+  if(newDate===l.d) delete ST.moves[modalId]; else ST.moves[modalId]=newDate;
+  save(); closeModal(); render();
+  showToast(`Aula movida para ${dateLabel(newDate)}`);
+}
+function resetDate(){
+  if(!modalId)return;
+  delete ST.moves[modalId];
+  save(); closeModal(); render();
+  showToast('Data original restaurada');
+}
+
+/* ── TOAST ── */
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+/* ── RENDER GERAL ── */
+function render(){
+  if(curView==='mes')   renderCalendar();
+  if(curView==='hoje')  renderHoje();
+  if(curView==='semana')renderSemana();
+  if(curView==='materias')renderMaterias();
+  if(curView==='todas') renderTodas();
+  updateSidebar();
+}
+
+/* ── INIT ── */
+const now=new Date();
+calYear=now.getFullYear(); calMonth=now.getMonth();
+rebuildLessons();
+renderCalendar();
+updateSidebar();
+renderCountdown();
+
+</script>
+</body>
+</html>

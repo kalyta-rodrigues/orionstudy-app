@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biblioteca de Estudos — OrionStudy</title>
+<script src="shared.js"></script>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --surface2: #1a1a38;
+  --border: #2a2a55;
+  --text: #e2e2f0;
+  --muted: #7777aa;
+  --fs: #a855f7;
+  --de: #06b6d4;
+  --bb: #f59e0b;
+  --ok: #10b981;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.back-link {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--muted); font-size: 0.82rem; text-decoration: none; transition: color 0.2s;
+}
+.back-link:hover { color: var(--text); }
+.logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, #a855f7, #ec4899, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.header-sub { font-size: 0.8rem; color: var(--muted); }
+
+.search-wrap { position: relative; }
+.search-input {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: 8px 12px 8px 36px; border-radius: 8px; font-size: 0.85rem; width: 220px;
+  outline: none; transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--fs); }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+.content { max-width: 1100px; margin: 0 auto; padding: 24px 20px 80px; }
+
+.filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.filter-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 99px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.filter-btn:hover { border-color: var(--muted); color: var(--text); }
+.filter-btn.active-all  { background: #ffffff15; border-color: var(--text); color: var(--text); }
+.filter-btn.active-fs   { background: #a855f720; border-color: var(--fs); color: #c084fc; }
+.filter-btn.active-de   { background: #06b6d420; border-color: var(--de); color: #22d3ee; }
+.filter-btn.active-bb   { background: #f59e0b20; border-color: var(--bb); color: #fbbf24; }
+.filter-btn.active-dio  { background: #10b98120; border-color: #10b981; color: #34d399; }
+
+.stats-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.stat-chip {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 16px; font-size: 0.8rem; color: var(--muted);
+}
+.stat-chip strong { display: block; font-size: 1.2rem; font-weight: 800; color: var(--text); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+@media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s;
+}
+.card:hover { border-color: #4444aa; }
+
+.card-head {
+  padding: 16px 18px; cursor: pointer;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.card-head:hover { background: #ffffff04; }
+
+.card-title-wrap { flex: 1; }
+.card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 99px; font-size: 0.7rem; font-weight: 700;
+}
+.badge-fs { background: #a855f71a; color: #c084fc; border: 1px solid #a855f740; }
+.badge-de { background: #06b6d41a; color: #22d3ee; border: 1px solid #06b6d440; }
+.badge-bb { background: #f59e0b1a; color: #fbbf24; border: 1px solid #f59e0b40; }
+.badge-dio { background: #10b9811a; color: #34d399; border: 1px solid #10b98140; }
+
+.card-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+.card-source-preview { font-size: 0.78rem; color: var(--muted); }
+.card-source-preview a { color: #c084fc; text-decoration: none; }
+.card-source-preview a:hover { text-decoration: underline; }
+
+.chevron { color: var(--muted); flex-shrink: 0; transition: transform 0.2s; }
+.card.open .chevron { transform: rotate(180deg); }
+
+.card-body { display: none; border-top: 1px solid var(--border); }
+.card.open .card-body { display: block; }
+
+.section { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.section:last-child { border-bottom: none; }
+.section-label {
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.section-label svg { flex-shrink: 0; }
+.section-content { font-size: 0.855rem; line-height: 1.6; }
+.section-content a { color: #c084fc; text-decoration: none; }
+.section-content a:hover { text-decoration: underline; }
+
+.resource-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; }
+.resource-type {
+  font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+  background: var(--surface2); color: var(--muted); flex-shrink: 0; margin-top: 2px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.order-list { list-style: none; counter-reset: order; }
+.order-list li {
+  counter-increment: order; display: flex; align-items: flex-start; gap: 10px;
+  padding: 5px 0; font-size: 0.84rem;
+}
+.order-list li::before {
+  content: counter(order);
+  background: var(--surface2); color: var(--muted);
+  width: 20px; height: 20px; border-radius: 99px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+}
+
+.project-box {
+  background: var(--surface2); border-radius: 8px; padding: 12px 14px;
+  font-size: 0.84rem; line-height: 1.6; border-left: 3px solid var(--fs);
+}
+
+.status-row { padding: 12px 18px; display: flex; align-items: center; gap: 10px; }
+.status-label { font-size: 0.78rem; color: var(--muted); }
+.status-select {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; outline: none;
+}
+.status-select:focus { border-color: var(--fs); }
+
+.status-dot {
+  width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0;
+}
+.dot-none     { background: var(--border); }
+.dot-studying { background: var(--de); }
+.dot-review   { background: var(--bb); }
+.dot-done     { background: var(--ok); }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty-state svg { margin-bottom: 12px; opacity: 0.4; }
+
+/* ═══════════ MODO CLARO — ativado por data-theme="light" no <html> ═══════════ */
+:root[data-theme="light"] {
+  --bg: #f4f4fa;
+  --surface: #ffffff;
+  --surface2: #ededf5;
+  --border: #dadae8;
+  --text: #1c1c30;
+  --muted: #5f5f7c;
+  --fs: #7c3aed;
+  --de: #0e7490;
+  --bb: #b45309;
+  --ok: #047857;
+}
+:root[data-theme="light"] body { background: var(--bg); color: var(--text); }
+:root[data-theme="light"] .badge-fs,
+:root[data-theme="light"] .filter-btn.active-fs { color: #6d28d9; }
+:root[data-theme="light"] .badge-de,
+:root[data-theme="light"] .filter-btn.active-de { color: #0e7490; }
+:root[data-theme="light"] .badge-bb,
+:root[data-theme="light"] .filter-btn.active-bb { color: #b45309; }
+:root[data-theme="light"] .badge-dio,
+:root[data-theme="light"] .filter-btn.active-dio { color: #047857; }
+:root[data-theme="light"] .filter-btn.active-all { background: #0000000d; border-color: var(--text); color: var(--text); }
+:root[data-theme="light"] .card:hover { border-color: #a3a3d0; }
+:root[data-theme="light"] .card-source-preview a,
+:root[data-theme="light"] .section-content a { color: #6d28d9; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <a class="back-link" href="plano-estudos.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+      Plano de estudos
+    </a>
+    <div>
+      <div class="logo">Biblioteca</div>
+      <div class="header-sub">Fontes gratuitas por matéria</div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    </span>
+    <input class="search-input" id="search" type="text" placeholder="Buscar matéria...">
+  </div>
+</header>
+
+<main class="content">
+  <div class="filter-bar">
+    <button class="filter-btn active-all" data-filter="all">Todas as matérias</button>
+    <button class="filter-btn" data-filter="fs">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+      Fullstack
+    </button>
+    <button class="filter-btn" data-filter="de">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+      Eng. de Dados
+    </button>
+    <button class="filter-btn" data-filter="bb">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="22"/><line x1="10" x2="10" y1="18" y2="22"/><line x1="14" x2="14" y1="18" y2="22"/><line x1="18" x2="18" y1="18" y2="22"/><polygon points="12 2 20 7 4 7"/></svg>
+      Banco do Brasil
+    </button>
+    <button class="filter-btn" data-filter="dio">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+      DIO Pro
+    </button>
+  </div>
+
+  <div class="stats-row" id="stats-row"></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<script>
+/* ── ICONS ── */
+const I = {
+  book:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>`,
+  link:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+  pen:   `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`,
+  target:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  list:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>`,
+  zap:   `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>`,
+  eye:   `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  down:  `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
+  folder:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+};
+
+/* ── LIBRARY DATA ── */
+const LIBRARY = [
+  {
+    id:'python', name:'Python', areas:['de','bb'],
+    principal:{ type:'Curso em vídeo PT-BR', label:'Curso em Vídeo — Python 3 (Gustavo Guanabara) — YouTube, gratuito, em português', url:'https://www.youtube.com/@CursoemVideo' },
+    apoio:{ type:'Livro PT-BR', label:'Pense em Python — tradução gratuita em português do livro de Allen Downey', url:'https://penseallen.github.io/PensePython2e/' },
+    pratica:{ label:'Beecrowd (antigo URI) — plataforma brasileira de exercícios com validação automática, interface em PT-BR', url:'https://www.beecrowd.com.br' },
+    simulado:{ label:'Beecrowd — resolva 20 problemas da categoria Iniciante com Python. Foco em strings, listas e dicionários.', url:'https://www.beecrowd.com.br' },
+    revisao:'Releia os capítulos de listas e dicionários. São a base de 80% dos problemas práticos em dados.',
+    ordem:['Sintaxe básica: variáveis, tipos, print, input','Condicionais e loops (for, while)','Funções: parâmetros, retorno, escopo','Listas, dicionários, tuplas, sets','Leitura e escrita de arquivos CSV','OOP: classes, métodos, herança básica','Try/Except: tratamento de erros','Pandas: instalação, leitura, filtros'],
+    projeto:'Carregue um extrato bancário em CSV e use Pandas para calcular gastos por categoria, média mensal e maior despesa.'
+  },
+  {
+    id:'sql', name:'SQL', areas:['de','bb'],
+    principal:{ type:'Curso em vídeo PT-BR', label:'Curso em Vídeo — MySQL (Gustavo Guanabara) — YouTube, gratuito, em português', url:'https://www.youtube.com/@CursoemVideo' },
+    apoio:{ type:'Artigos PT-BR', label:'DevMedia — SQL: artigos e tutoriais gratuitos em português', url:'https://www.devmedia.com.br/sql' },
+    pratica:{ label:'Beecrowd — categoria SQL: exercícios práticos com validação automática, interface em PT-BR', url:'https://www.beecrowd.com.br' },
+    simulado:{ label:'QConcursos — Banco de Dados + SQL + banca Cesgranrio. Meta: 15 questões por sessão.', url:'https://www.qconcursos.com' },
+    revisao:'Releia JOINs e GROUP BY. São os pontos que mais caem em prova e em entrevistas de dados.',
+    ordem:['SELECT, FROM, WHERE básico','ORDER BY, LIMIT, DISTINCT','Funções agregadas: COUNT, SUM, AVG, MIN, MAX','GROUP BY e HAVING','INNER JOIN, LEFT JOIN, RIGHT JOIN','Subqueries e CTEs (WITH)','DDL: CREATE TABLE, ALTER, DROP','DML: INSERT, UPDATE, DELETE'],
+    projeto:'Importe dados públicos (ex: dados de municípios do IBGE) para um banco SQLite e escreva 10 queries de análise.'
+  },
+  {
+    id:'react', name:'React', areas:['fs'],
+    principal:{ type:'YouTube PT-BR', label:'Rocketseat — aulas gratuitas de React em português no YouTube', url:'https://www.youtube.com/@rocketseat_oficial' },
+    apoio:{ type:'Plataforma PT-BR', label:'freeCodeCamp em português — certificação Front End com React, 100% gratuita', url:'https://www.freecodecamp.org/portuguese/learn/front-end-development-libraries' },
+    pratica:{ label:'freeCodeCamp PT-BR — resolva os projetos guiados da certificação Front End Libraries (avaliação automática)', url:'https://www.freecodecamp.org/portuguese/learn/front-end-development-libraries' },
+    simulado:{ label:'freeCodeCamp PT-BR — complete os 5 projetos de certificação React. Cada um é avaliado automaticamente.', url:'https://www.freecodecamp.org/portuguese/learn/front-end-development-libraries' },
+    revisao:'Releia useState e useEffect. São os hooks mais usados e mais cobrados em entrevistas de React.',
+    ordem:['Componentes funcionais e JSX','Props: passar e receber dados','useState: estado local e re-render','useEffect: efeitos e ciclo de vida','Formulários controlados','Renderização condicional e listas','React Router: rotas e navegação','Consumo de API com fetch/axios'],
+    projeto:'Construa um gerenciador de tarefas com React puro: adicionar, remover, filtrar por status, salvar no localStorage.'
+  },
+  {
+    id:'typescript', name:'TypeScript', areas:['fs'],
+    principal:{ type:'YouTube PT-BR', label:'Rocketseat — TypeScript na prática: aulas gratuitas em português no YouTube', url:'https://www.youtube.com/@rocketseat_oficial' },
+    apoio:{ type:'Plataforma PT-BR', label:'DIO (Digital Innovation One) — cursos gratuitos de TypeScript com certificado, em português', url:'https://www.dio.me' },
+    pratica:{ label:'Beecrowd — resolva problemas de lógica em TypeScript para fixar tipagem e funções', url:'https://www.beecrowd.com.br' },
+    simulado:{ label:'Pegue o projeto React que você já fez e converta para TypeScript: tipe os componentes, props e chamadas de API', url:'' },
+    revisao:'Releia interfaces e tipos utilitários (Partial, Pick, Omit). São os mais usados no dia a dia.',
+    ordem:['Tipos básicos: string, number, boolean, array, any','Interfaces e types','Union types e intersection types','Tipos utilitários: Partial, Required, Pick, Omit','Genéricos (generics)','Tipar props de componentes React','Tipar useState e useEffect','Tipar respostas de API'],
+    projeto:'Pegue o projeto React de tarefas que você já fez e converta para TypeScript: tipar todos os componentes, props e funções.'
+  },
+  {
+    id:'firebase', name:'Firebase', areas:['fs'],
+    principal:{ type:'Documentação PT-BR', label:'Firebase Docs em português — documentação oficial do Google com suporte a PT-BR', url:'https://firebase.google.com/docs?hl=pt-br' },
+    apoio:{ type:'YouTube PT-BR', label:'Filipe Deschamps — tutoriais de Firebase e JavaScript em português no YouTube', url:'https://www.youtube.com/@FilipeDeschamps' },
+    pratica:{ label:'Implemente um CRUD completo do zero com Firestore: criar, ler, atualizar e deletar dados de uma lista de tarefas', url:'' },
+    simulado:{ label:'Implemente autenticação por email/senha + regras de segurança do Firestore em um projeto novo do zero', url:'' },
+    revisao:'Releia as regras de segurança do Firestore. É o ponto onde a maioria das pessoas comete erros de segurança reais.',
+    ordem:['Configurar projeto Firebase e SDK','Firestore: leitura (getDocs, getDoc)','Firestore: escrita (addDoc, setDoc, updateDoc, deleteDoc)','Listeners em tempo real (onSnapshot)','Auth: criar conta e login com email/senha','Proteger rotas autenticadas','Regras de segurança do Firestore','Firebase Storage: upload e download de arquivos','Firebase Hosting: deploy do app'],
+    projeto:'App de notas: autenticação + cada usuário vê só as próprias notas (regras de segurança obrigatórias) + deploy no Firebase Hosting.'
+  },
+  {
+    id:'etl', name:'ETL — Pipelines', areas:['de'],
+    principal:{ type:'YouTube PT-BR', label:'Hashtag Programação — Python para dados e automação, aulas gratuitas em português', url:'https://www.youtube.com/@HashtagProgramacao' },
+    apoio:{ type:'Plataforma PT-BR', label:'DIO — cursos gratuitos de Engenharia de Dados com Python, em português', url:'https://www.dio.me' },
+    pratica:{ label:'Portal da Transparência — dados públicos reais do governo brasileiro para construir seu pipeline ETL', url:'https://portaldatransparencia.gov.br/download-de-dados' },
+    simulado:{ label:'Construa um pipeline ETL completo: extrair CSV do Portal da Transparência, transformar com Pandas, carregar em SQLite', url:'https://portaldatransparencia.gov.br/download-de-dados' },
+    revisao:'ETL = Extract (leitura da fonte) + Transform (limpeza, normalização, enriquecimento) + Load (destino). Revise cada etapa com exemplos concretos.',
+    ordem:['Conceito de pipeline de dados e ETL','Extract: ler CSV, JSON, API REST com Python','Transform: limpeza com Pandas (nulos, duplicatas, tipos)','Transform: normalização e enriquecimento','Load: escrever em SQLite ou PostgreSQL','Orquestração simples com funções Python','Logs e tratamento de erros no pipeline','Qualidade de dados: validações antes do load'],
+    projeto:'Pipeline que baixa dados de gastos públicos do Portal da Transparência, limpa com Pandas, gera relatório em CSV e carrega em banco SQL.'
+  },
+  {
+    id:'dbt', name:'dbt', areas:['de'],
+    principal:{ type:'YouTube PT-BR', label:'Hashtag Programação — SQL e transformação de dados em português no YouTube', url:'https://www.youtube.com/@HashtagProgramacao' },
+    apoio:{ type:'Plataforma PT-BR', label:'DIO — trilha de Engenharia de Dados com ferramentas de transformação, em português', url:'https://www.dio.me' },
+    pratica:{ label:'Jaffle Shop — projeto de exemplo oficial do dbt para praticar do zero (tutorial guiado, gratuito no GitHub)', url:'https://github.com/dbt-labs/jaffle_shop' },
+    simulado:{ label:'dbt Core + DuckDB local: transforme um CSV em tabelas dimensionais e aplique testes de qualidade', url:'https://duckdb.org' },
+    revisao:'Releia o conceito de "ref()" e "source()". São os pilares da linhagem de dados no dbt e diferencial em entrevistas.',
+    ordem:['O que é dbt e onde se encaixa no pipeline','Instalação do dbt Core','Configurar profile e conexão com banco','Criar o primeiro model (SELECT em SQL)','Entender staging, intermediate e marts','sources.yml: definir fontes de dados','schema.yml: testes e documentação','Comandos: dbt run, dbt test, dbt docs generate'],
+    projeto:'Criar um projeto dbt com dados reais no DuckDB: pelo menos 3 models em camadas (staging → intermediate → mart) com testes de unicidade e not_null.'
+  },
+  {
+    id:'airflow', name:'Apache Airflow', areas:['de'],
+    principal:{ type:'YouTube PT-BR', label:'Hashtag Programação — automação e orquestração com Python, em português', url:'https://www.youtube.com/@HashtagProgramacao' },
+    apoio:{ type:'Plataforma PT-BR', label:'DIO — cursos de orquestração de dados e pipelines em português, gratuitos', url:'https://www.dio.me' },
+    pratica:{ label:'Instale Airflow com Docker Compose e crie sua primeira DAG que executa um script Python simples', url:'https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html' },
+    simulado:{ label:'Crie uma DAG que orquestra seu pipeline ETL em 3 tasks encadeadas: extrair → transformar → carregar', url:'' },
+    revisao:'Releia o conceito de DAG, Task, Operator e Scheduler. Entenda a diferença entre PythonOperator e BashOperator.',
+    ordem:['O que é orquestração e por que Airflow','Conceito de DAG, Task e Operator','Instalação com Docker Compose','Criar a primeira DAG com BashOperator','PythonOperator: executar funções Python','Agendamento com cron expressions','Dependências entre tasks (set_upstream/downstream)','XCom: passar dados entre tasks','Monitoramento pelo Airflow UI'],
+    projeto:'DAG que executa diariamente: (1) baixa dados de uma API pública, (2) transforma com Python, (3) salva no banco. Monitorar pelo Airflow UI.'
+  },
+  {
+    id:'portugues', name:'Língua Portuguesa', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Língua Portuguesa para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'YouTube PT-BR', label:'Estratégia Concursos — aulas gratuitas de Português para concurso, como reforço complementar', url:'https://www.youtube.com/@EstrategiaConcursos' },
+    pratica:{ label:'Provas anteriores do Banco do Brasil — disponíveis no site do Cebraspe (PDF gratuito, PT-BR)', url:'https://www.cebraspe.org.br/concursos' },
+    simulado:{ label:'Estude Grátis ou QConcursos — filtre por Português + banca Cesgranrio + cargo BB. Meta: 20 questões por semana.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Interpretação de texto é resolvível com atenção ao enunciado. Nunca suponha — toda resposta está no texto. Treine leitura lenta e sublinhado.',
+    ordem:['Interpretação de texto (mais cobrado — comece aqui)','Coesão e coerência','Ortografia e acentuação','Concordância verbal','Concordância nominal','Regência verbal','Regência nominal','Crase','Pontuação'],
+    projeto:'Caderno de erros: anote cada questão errada com (a) o tema, (b) por que errou, (c) a regra correta. Revise toda sexta-feira.'
+  },
+  {
+    id:'ingles', name:'Inglês Técnico', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Inglês Técnico para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'YouTube PT-BR', label:'Estratégia Concursos — aulas de Inglês Técnico para concurso, em português (reforço gratuito)', url:'https://www.youtube.com/@EstrategiaConcursos' },
+    pratica:{ label:'Provas anteriores do BB — resolva as questões de Inglês Técnico e consulte o gabarito comentado no QConcursos', url:'https://www.cebraspe.org.br/concursos' },
+    simulado:{ label:'Estude Grátis ou QConcursos — filtre por Inglês + banca Cesgranrio + cargo BB. Resolva 30 questões e anote cada erro.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'O inglês do BB é leitura de texto técnico, não produção. Foque em: (1) vocabulário de TI, (2) conectivos (however, therefore, although), (3) tempos verbais básicos. Você não precisa falar — só ler e entender.',
+    ordem:['Vocabulário técnico de TI: software, hardware, network, data, server, database, security','Tempos verbais básicos: presente simples, presente perfeito, passado simples','Conectivos: however (porém), therefore (portanto), although (embora), moreover (além disso)','Interpretação de texto técnico: leia o enunciado antes do texto','Pronomes relativos: which (o qual), that (que), who (quem)','Voz passiva: is used (é usado), was developed (foi desenvolvido)','Prática: resolução de questões de provas anteriores do BB'],
+    projeto:'Resolva todas as questões de inglês das últimas 3 provas do BB. Para cada questão errada, escreva a tradução da parte que gerou confusão.'
+  },
+  {
+    id:'matematica', name:'Matemática', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Matemática para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'YouTube PT-BR', label:'Professor Ferretto — revisão focada em concurso, exercícios comentados em português (reforço gratuito)', url:'https://www.youtube.com/@ProfessorFerretto' },
+    pratica:{ label:'Khan Academy Brasil — exercícios adaptativos por tema: identifica automaticamente o que você sabe e o que falta', url:'https://pt.khanacademy.org' },
+    simulado:{ label:'Estude Grátis ou QConcursos — filtre por Matemática + banca Cesgranrio. Meta: 10 questões por sessão.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Monte uma folha com as fórmulas de juros simples, juros compostos e porcentagem. Consulte antes de cada simulado até memorizar.',
+    ordem:['Porcentagem e variação percentual','Razão e proporção','Regra de três simples','Regra de três composta','Juros simples','Juros compostos','Progressão aritmética e geométrica (PA e PG)'],
+    projeto:'Crie uma planilha (ou script Python) que calcule: (1) rendimento de um CDB em juros compostos, (2) desconto comercial, (3) taxa equivalente mensal/anual.'
+  },
+  {
+    id:'estatistica', name:'Probabilidade e Estatística', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Probabilidade e Estatística para BB Agente de TI (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'YouTube PT-BR', label:'Professor Ferretto — Estatística para concurso no YouTube, com exercícios comentados (reforço gratuito)', url:'https://www.youtube.com/@ProfessorFerretto' },
+    pratica:{ label:'Khan Academy Brasil — exercícios com feedback imediato de probabilidade e estatística descritiva', url:'https://pt.khanacademy.org/math/statistics-probability' },
+    simulado:{ label:'Estude Grátis ou QConcursos — filtre por Estatística + banca Cesgranrio. Meta: 8 questões por sessão.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Distribuição normal e média/desvio padrão são os tópicos mais cobrados. Pratique interpretar gráficos de histograma e curva normal.',
+    ordem:['Probabilidade: espaço amostral, evento, regra da adição','Probabilidade: regra da multiplicação, eventos independentes','Média, mediana e moda','Variância e desvio padrão','Coeficiente de variação','Distribuição normal: conceito e curva','Leitura de tabelas e gráficos estatísticos','Estatística descritiva aplicada'],
+    projeto:'Com uma planilha de dados (pode ser seu extrato bancário), calcule: média, mediana, moda e desvio padrão dos gastos mensais. Interprete os resultados.'
+  },
+  {
+    id:'bancarios', name:'Conhecimentos Bancários', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Conhecimentos Bancários para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'Site oficial PT-BR', label:'Banco Central — Cidadania Financeira: leitura complementar gratuita para aprofundar SFN', url:'https://www.bcb.gov.br/cidadaniafinanceira' },
+    pratica:{ label:'QConcursos — Conhecimentos Bancários filtrado por banco BB e banca Cesgranrio', url:'https://www.qconcursos.com' },
+    simulado:{ label:'Estude Grátis — filtre por Conhecimentos Bancários + BB. Alternativa: provas completas anteriores no Cebraspe, cronometradas.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Monte um esquema do SFN: quem regula quem. CMN → Banco Central → Bancos Comerciais. Entenda o papel de cada órgão.',
+    ordem:['Sistema Financeiro Nacional (SFN) — estrutura e hierarquia','Banco Central: funções e instrumentos de política monetária','CMN, CVM e SUSEP: funções e diferenças','Tipos de conta bancária','Produtos de investimento: CDB, LCI, LCA, Tesouro Direto','Fundos de investimento: conceitos e tipos','Meios de pagamento: PIX, TED, DOC, boleto','Crédito: tipos, garantias e análise de risco','Prevenção à lavagem de dinheiro (COAF, GAFI)'],
+    projeto:'Crie um resumo visual (tabela ou mapa mental) comparando os produtos bancários: rendimento, liquidez, garantia FGC, tributação.'
+  },
+  {
+    id:'bd', name:'Banco de Dados', areas:['de','bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Banco de Dados para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'Curso em vídeo PT-BR', label:'Curso em Vídeo — Modelagem de Banco de Dados (Guanabara) — YouTube, gratuito, para reforço prático', url:'https://www.youtube.com/@CursoemVideo' },
+    pratica:{ label:'DB Fiddle — testar queries online sem instalar nada, diretamente no navegador', url:'https://www.db-fiddle.com' },
+    simulado:{ label:'Estude Grátis ou QConcursos — filtre por Banco de Dados + TI + banca Cesgranrio. Foco em: normalização, SQL, ACID, NoSQL.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Normalização (1FN, 2FN, 3FN) e propriedades ACID são os pontos que mais caem em prova de banco de dados para concurso.',
+    ordem:['Modelo relacional: tabelas, chaves primária e estrangeira','Modelagem ER: diagrama entidade-relacionamento','Normalização: 1FN, 2FN, 3FN (e BCNF)','SQL: todos os comandos DDL e DML','Transações ACID: definição e exemplo de cada propriedade','Controle de concorrência: locks e deadlocks','Índices: B-tree, por que e quando usar','NoSQL: tipos (documento, chave-valor, grafo, colunar) e casos de uso'],
+    projeto:'Modele um banco de dados para um sistema bancário simples: contas, clientes, transações. Normalize até 3FN e escreva 5 queries de relatório.'
+  },
+  {
+    id:'redes', name:'Redes de Computadores', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Redes de Computadores para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'Curso em vídeo PT-BR', label:'Curso em Vídeo — Redes (Guanabara) — YouTube, gratuito, para reforço prático em português', url:'https://www.youtube.com/@CursoemVideo' },
+    pratica:{ label:'Packet Tracer da Cisco — simulador de redes gratuito (interface disponível em português após cadastro)', url:'https://www.netacad.com/cisco-packet-tracer' },
+    simulado:{ label:'Estude Grátis ou QConcursos — filtre por Redes + TI + banca Cesgranrio. Foco em: OSI, TCP/IP, protocolos.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Monte uma tabela com as 7 camadas do modelo OSI: nome, função e protocolo principal de cada uma. Decore essa tabela.',
+    ordem:['Fundamentos de redes: o que é, por que existe, como funciona','Modelo OSI: 7 camadas, função e protocolo de cada uma','TCP/IP: 4 camadas e comparação com OSI','Endereçamento IPv4: classe, máscara, sub-rede','CIDR e cálculo de sub-rede','Protocolos: HTTP, HTTPS, FTP, DNS, DHCP, SMTP, SSH','Equipamentos: hub, switch, roteador, bridge, gateway','VPN, proxy, NAT e firewall','IPv6: estrutura e diferenças do IPv4'],
+    projeto:'No Packet Tracer, monte uma rede com: 1 roteador, 2 switches, 4 computadores em sub-redes diferentes. Configure endereçamento e teste o ping entre máquinas.'
+  },
+  {
+    id:'seguranca', name:'Segurança da Informação', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Segurança da Informação para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'YouTube PT-BR', label:'Estratégia Concursos — Segurança da Informação para concurso: aulas gratuitas em português (reforço)', url:'https://www.youtube.com/@EstrategiaConcursos' },
+    pratica:{ label:'QConcursos — Segurança da Informação + banca Cesgranrio. Questões focadas em CID, criptografia e ameaças.', url:'https://www.qconcursos.com' },
+    simulado:{ label:'Estude Grátis — filtre por Segurança da Informação + banca Cesgranrio. Resolva 30 questões e categorize os erros por tema (CID, criptografia, ameaças).', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Decore o triângulo CID: Confidencialidade (quem pode ver?), Integridade (está correto?), Disponibilidade (quando preciso, está lá?). Toda questão de segurança se encaixa aqui.',
+    ordem:['Princípios CID: Confidencialidade, Integridade, Disponibilidade','Criptografia simétrica: AES, DES — mesma chave para cifrar e decifrar','Criptografia assimétrica: RSA, chave pública e privada','Hash: MD5, SHA — não é criptografia, é impressão digital','Certificado digital, PKI e assinatura digital','Autenticação multifator (MFA) e controle de acesso','Ameaças: malware, phishing, ransomware, engenharia social','Firewall, IDS, IPS e DMZ','LGPD: princípios, direitos do titular, papéis','Frameworks: ISO 27001/27002, NIST CSF'],
+    projeto:'Crie um guia pessoal de segurança: para cada ameaça (phishing, ransomware, etc.), escreva o que é, como funciona e como se proteger.'
+  },
+  {
+    id:'cloud', name:'Cloud Computing', areas:['de','bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Cloud Computing para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'Plataforma PT-BR', label:'AWS Skill Builder — cursos gratuitos sobre AWS com conteúdo em português (reforço prático)', url:'https://skillbuilder.aws' },
+    pratica:{ label:'GCP Free Tier — faça deploy de um app real no Google Cloud gratuitamente (créditos no primeiro ano)', url:'https://cloud.google.com/free' },
+    simulado:{ label:'Estude Grátis ou QConcursos — filtre por Cloud Computing + TI + banca Cesgranrio. Foco em: IaaS/PaaS/SaaS, modelos de implantação.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Decore a tabela IaaS/PaaS/SaaS com exemplos reais: IaaS = EC2, PaaS = Heroku, SaaS = Gmail. Para prova, lembre que o cliente gerencia menos conforme sobe de nível.',
+    ordem:['Conceitos: o que é cloud, por que existe, vantagens','Modelos de implantação: pública, privada, híbrida, comunitária','Modelos de serviço: IaaS, PaaS, SaaS — quem gerencia o quê','Virtualização: hipervisores tipo 1 (bare-metal) e tipo 2 (hosted)','Contêineres: Docker — diferença de VM, imagem, container','Kubernetes: orquestração de contêineres (conceito para prova)','Alta disponibilidade: SLA, failover, balanceador de carga','Escalabilidade horizontal vs vertical','DR: Disaster Recovery e backup em cloud'],
+    projeto:'Deploy de um app simples no GCP (Google App Engine ou Cloud Run) usando o free tier. Documente em português os passos que seguiu.'
+  },
+  {
+    id:'devsistemas', name:'Desenvolvimento de Sistemas', areas:['bb'],
+    principal:{ type:'Curso assinado', label:'Gran Cursos Online — videoaulas de Desenvolvimento de Sistemas para BB Agente de Tecnologia (seu curso)', url:'https://www.grancursosonline.com.br/aluno/curso/s/banco-do-brasil-escriturario-agente-de-tecnologia-da-informacao' },
+    apoio:{ type:'Guia oficial PT-BR', label:'Scrum Guide em português — guia oficial do Scrum, gratuito no scrumguides.org (leitura obrigatória)', url:'https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-PortugueseBR.pdf' },
+    pratica:{ label:'QConcursos — Desenvolvimento de Sistemas + banca Cesgranrio. Muitas questões de Scrum, UML e SDLC.', url:'https://www.qconcursos.com' },
+    simulado:{ label:'Estude Grátis — filtre por Engenharia de Software + banca Cesgranrio. Resolva 20 questões de provas anteriores do BB.', url:'https://www.estudegratis.com.br/questoes-de-concurso' },
+    revisao:'Scrum: decore os 3 papéis (PO, Scrum Master, Dev Team), 5 eventos (Sprint, Planning, Daily, Review, Retrospective) e 3 artefatos (Product Backlog, Sprint Backlog, Incremento).',
+    ordem:['Modelos de SDLC: cascata, incremental, espiral','Metodologias ágeis: Manifesto Ágil e 12 princípios','Scrum: papéis, eventos e artefatos','Kanban: fluxo, WIP limit, board','UML: diagrama de casos de uso','UML: diagrama de classes','UML: diagrama de sequência','Padrões de projeto: Singleton, Factory, Observer (conceito)','Estruturas de dados: array, lista, pilha, fila, árvore','APIs REST: métodos HTTP, status codes, JSON, autenticação'],
+    projeto:'Desenhe o diagrama UML (casos de uso + classes) de um sistema bancário simples: conta, cliente, transferência, extrato.'
+  },
+
+  /* ── DIO Pro — formações e cursos salvos na "Minha Lista" (assinatura paga) ──
+     Estes são os conteúdos
+     que você já pagou (DIO Pro) e pode estudar agora — não confundir com o
+     acesso à universidade Sankhya, que ainda não foi liberado. */
+  {
+    id:'dio-sql-db-specialist', name:'Formação SQL Database Specialist', areas:['dio','de','bb'], dio:true,
+    principal:{ type:'Formação DIO Pro', label:'Formação SQL Database Specialist — DIO (assinatura Pro)', url:'https://web.dio.me/track/formacao-sql-db-specialist' },
+    meta:'72h · 27 cursos · 1 live · 5 atividades · nível Avançada · salva na Minha Lista',
+    ordem:['Contextualização do cenário na Área de Banco de Dados','Introdução a Banco de Dados Relacionais (SQL)','Explorando a abordagem de SGBDs','Primeiros Passos com SQL','Explorando Queries com SQL','Introdução à Modelagem de Dados','Modelo de Entidade Relacionamento','Fundamentos de Modelagem e Projeto de Banco de Dados','Criando Queries com Funções e Cláusulas de Agrupamentos','Explorando Cláusulas de DDL e Esquemas de Banco de Dados','Personalizando acessos com Views','Normalização em Banco de Dados'],
+    revisao:'Sobrepõe Dados → Fase 1 (SELECT, JOIN, GROUP BY, DDL) e BB → Banco de Dados (modelagem, normalização). Se já marcou esses tópicos no plano, use como revisão. É a base da camada Sankhya.'
+  },
+  {
+    id:'dio-java-fundamentals', name:'Formação Java Fundamentals', areas:['dio'], dio:true,
+    principal:{ type:'Formação DIO Pro', label:'Formação Java Fundamentals — DIO (assinatura Pro)', url:'https://web.dio.me/track/formacao-java-fundamentals' },
+    meta:'45h · 14 cursos · 4 atividades · nível Avançada · salva na Minha Lista',
+    ordem:['Introdução à Plataforma Java','Ambiente de Desenvolvimento Java','Aprendendo a Sintaxe Java','Estruturas Condicionais com Java','Estruturas de Repetição em Java','Entendendo Métodos Java','Fundamentos da Programação Orientada a Objetos com Java','Praticando Orientação a Objetos com Java','Java e Tratamento de Exceções','Conhecendo e trabalhando com Collections Java','Ganhando Produtividade com Stream API','Aprenda sobre S.O.L.I.D. com Java','Debugging Java','Gerenciamento de Dependências e Build em Java com Maven'],
+    revisao:'Conteúdo novo — não há trilha equivalente no plano. É o pilar Java da camada Sankhya (era o bloco Sankhya semanas 6–12).'
+  },
+  {
+    id:'dio-java-developer', name:'Formação Java Developer', areas:['dio'], dio:true,
+    principal:{ type:'Formação DIO Pro', label:'Formação Java Developer — DIO (assinatura Pro)', url:'https://web.dio.me/track/formacao-java-developer' },
+    meta:'76h · 35 cursos · 6 atividades · salva na Minha Lista',
+    revisao:'Aprofundamento de Java. Só comece depois de concluir Java Fundamentals (POO e Collections dominados).'
+  },
+  {
+    id:'dio-logica-programacao', name:'Formação Lógica de Programação', areas:['dio'], dio:true,
+    principal:{ type:'Formação DIO Pro', label:'Formação Lógica de Programação — DIO (assinatura Pro)', url:'https://web.dio.me/track/formacao-logica-de-programacao' },
+    meta:'41h · 30 cursos · 40 atividades · salva na Minha Lista',
+    revisao:'Base de algoritmos e resolução de problemas. Use se sentir falta de fundamento antes de Java ou dos desafios de código.'
+  },
+  {
+    id:'dio-accenture-java-cloud', name:'Accenture — Desenvolvimento Java & Cloud', areas:['dio'], dio:true,
+    principal:{ type:'Bootcamp DIO Pro', label:'Accenture - Desenvolvimento Java & Cloud — DIO (assinatura Pro)', url:'https://web.dio.me/track/accenture-desenvolvimento-java-cloud' },
+    meta:'54h · 29 cursos · 1 live · 6 atividades · salva na Minha Lista',
+    revisao:'Java aplicado + noções de Cloud. Faça depois de Java Fundamentals.'
+  },
+  {
+    id:'dio-santander-ai-java-backend', name:'Santander 2026 — AI Java Back-end', areas:['dio'], dio:true,
+    principal:{ type:'Bootcamp DIO Pro', label:'Santander 2026 - AI Java Back-end — DIO (assinatura Pro)', url:'https://web.dio.me/track/santander-2026-java-backend' },
+    meta:'49h · 21 cursos · 1 live · 5 atividades · nível Iniciante · salva na Minha Lista',
+    revisao:'Back-end com Java + IA. Bootcamp com prazo — confira as datas na DIO.'
+  },
+  {
+    id:'dio-fundamentos-ia', name:'Formação Fundamentos de Inteligência Artificial', areas:['dio','de'], dio:true,
+    principal:{ type:'Formação DIO Pro', label:'Formação Fundamentos de Inteligência Artificial — DIO (assinatura Pro)', url:'https://web.dio.me/track/formacao-fundamentos-de-inteligencia-artificial' },
+    meta:'10h · 8 cursos · 2 atividades · salva na Minha Lista',
+    revisao:'Conversa com o bloco de IA/ML do cronograma do BB (Tecnologia da Informação).'
+  },
+  {
+    id:'dio-nublify-ia-cloud', name:'Nublify — Primeiros passos em IA e Cloud', areas:['dio','de'], dio:true,
+    principal:{ type:'Bootcamp DIO Pro', label:'Nublify - Primeiros passos em IA e Cloud — DIO (assinatura Pro)', url:'https://web.dio.me/track/nublify-primeiros-passos-em-ia-e-cloud' },
+    meta:'40h · 25 cursos · 4 lives · 8 atividades · salva na Minha Lista'
+  },
+  {
+    id:'dio-microsoft-week-ai-data', name:'Microsoft Week — AI Data Engineering', areas:['dio','de'], dio:true,
+    principal:{ type:'Evento DIO Pro', label:'Microsoft Week - AI Data Engineering — DIO (assinatura Pro)', url:'https://web.dio.me/track/microsoft-week-ai-data-enginieering' },
+    meta:'2h · 1 curso · 3 lives · 4 atividades · salva na Minha Lista'
+  },
+  {
+    id:'dio-cursos-avulsos', name:'Cursos avulsos salvos na DIO', areas:['dio'], dio:true,
+    principal:{ type:'Cursos DIO Pro', label:'Minha Lista na DIO — cursos individuais (assinatura Pro)', url:'https://web.dio.me' },
+    meta:'9 cursos avulsos salvos, fora das formações acima',
+    conteudo:['Princípios de Pensamento Computacional com Python — 1h','Introdução à Programação e Pensamento Computacional — 5h','SQL Server: Boas práticas em bancos relacionais — 2h','Contextualização do cenário na Área de Banco de Dados — 2h','Estrutura de dados em Java — 9h','Dominando IDEs Java — 4h','Estruturas de Repetição em Java — 1h','Java e Tratamento de Exceções — 1h','Fundamentos da Programação Orientada a Objetos com Java — 3h'],
+    revisao:'Vários desses cursos também aparecem dentro das formações de SQL e Java acima — não estude em duplicidade.'
+  },
+];
+
+/* ── STATE ── */
+let state = { status:{} };
+function loadState() { try { const s = localStorage.getItem('orion_lib_v2'); if(s) state = JSON.parse(s) || {}; } catch(e){} state.status = state.status || {}; }
+function saveState() { try { localStorage.setItem('orion_lib_v2', JSON.stringify(state)); } catch(e){} }
+function getStatus(id) { return state.status[id] || 'none'; }
+
+/* ── FILTER + SEARCH ── */
+let activeFilter = 'all';
+let searchTerm = '';
+
+function getFiltered() {
+  return LIBRARY.filter(s => {
+    const matchesFilter = activeFilter === 'all' || s.areas.includes(activeFilter);
+    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+}
+
+/* ── BADGE HTML ── */
+function areasBadges(areas) {
+  const map = { fs:'badge-fs', de:'badge-de', bb:'badge-bb', dio:'badge-dio' };
+  const label = { fs:'Fullstack', de:'Dados', bb:'BB', dio:'DIO Pro' };
+  return areas.map(a => `<span class="badge ${map[a]}">${label[a]}</span>`).join('');
+}
+
+/* ── STATUS DOT ── */
+function statusDot(st) {
+  const cls = { none:'dot-none', studying:'dot-studying', review:'dot-review', done:'dot-done' };
+  return `<span class="status-dot ${cls[st] || 'dot-none'}"></span>`;
+}
+
+/* ── CARD HTML ── */
+function linkOrText(o) {
+  return o.url
+    ? `<a href="${o.url}" target="_blank" rel="noopener">${o.label}</a>`
+    : o.label;
+}
+
+function cardHTML(s) {
+  const st = getStatus(s.id);
+  const sourceHTML = linkOrText(s.principal);
+
+  /* Seções renderizadas só quando o campo existe — cards da DIO usam um
+     subconjunto (principal + meta + ordem/conteúdo + revisão). */
+  let body = `
+        <div class="section">
+          <div class="section-label">${I.book} Fonte principal</div>
+          <div class="section-content">
+            <div class="resource-row">
+              <span class="resource-type">${s.principal.type}</span>
+              <span>${sourceHTML}</span>
+            </div>
+          </div>
+        </div>`;
+
+  if (s.meta) body += `
+        <div class="section">
+          <div class="section-label">${I.list} O que inclui</div>
+          <div class="section-content" style="color:var(--muted)">${s.meta}</div>
+        </div>`;
+
+  if (s.conteudo && s.conteudo.length) body += `
+        <div class="section">
+          <div class="section-label">${I.folder} Conteúdo</div>
+          <div class="section-content"><ul class="order-list">${s.conteudo.map(c => `<li>${c}</li>`).join('')}</ul></div>
+        </div>`;
+
+  if (s.apoio) body += `
+        <div class="section">
+          <div class="section-label">${I.link} Fonte de apoio</div>
+          <div class="section-content">
+            <div class="resource-row">
+              <span class="resource-type">${s.apoio.type}</span>
+              <span>${linkOrText(s.apoio)}</span>
+            </div>
+          </div>
+        </div>`;
+
+  if (s.pratica) body += `
+        <div class="section">
+          <div class="section-label">${I.pen} Prática</div>
+          <div class="section-content">${linkOrText(s.pratica)}</div>
+        </div>`;
+
+  if (s.simulado) body += `
+        <div class="section">
+          <div class="section-label">${I.target} Simulado / Exercício</div>
+          <div class="section-content">${linkOrText(s.simulado)}</div>
+        </div>`;
+
+  if (s.ordem && s.ordem.length) body += `
+        <div class="section">
+          <div class="section-label">${I.list} Ordem de estudo</div>
+          <div class="section-content">
+            <ol class="order-list">${s.ordem.map(o => `<li>${o}</li>`).join('')}</ol>
+          </div>
+        </div>`;
+
+  if (s.projeto) body += `
+        <div class="section">
+          <div class="section-label">${I.folder} Projeto recomendado</div>
+          <div class="section-content">
+            <div class="project-box">${s.projeto}</div>
+          </div>
+        </div>`;
+
+  if (s.revisao) body += `
+        <div class="section">
+          <div class="section-label">${I.eye} Revisão rápida</div>
+          <div class="section-content" style="color:var(--muted)">${s.revisao}</div>
+        </div>`;
+
+  return `
+    <div class="card" id="card-${s.id}">
+      <div class="card-head" onclick="toggleCard('${s.id}')">
+        <div class="card-title-wrap">
+          <div class="card-badges">${areasBadges(s.areas)}</div>
+          <div class="card-name">${s.name}</div>
+          <div class="card-source-preview">Principal: ${sourceHTML}</div>
+        </div>
+        <span class="chevron">${I.down}</span>
+      </div>
+
+      <div class="card-body">
+        ${body}
+
+        <div class="status-row">
+          ${statusDot(st)}
+          <span class="status-label">Status:</span>
+          <select class="status-select" onchange="updateStatus('${s.id}', this.value)">
+            <option value="none"     ${st==='none'     ?'selected':''}>Nao iniciado</option>
+            <option value="studying" ${st==='studying' ?'selected':''}>Estudando</option>
+            <option value="review"   ${st==='review'   ?'selected':''}>Em revisao</option>
+            <option value="done"     ${st==='done'     ?'selected':''}>Concluido</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── STATS ── */
+function renderStats(items) {
+  const total = items.length;
+  const studying = items.filter(s => getStatus(s.id) === 'studying').length;
+  const done = items.filter(s => getStatus(s.id) === 'done').length;
+  const none = items.filter(s => getStatus(s.id) === 'none').length;
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-chip"><strong>${total}</strong>matérias</div>
+    <div class="stat-chip"><strong style="color:var(--de)">${studying}</strong>estudando</div>
+    <div class="stat-chip"><strong style="color:var(--ok)">${done}</strong>concluídas</div>
+    <div class="stat-chip"><strong style="color:var(--muted)">${none}</strong>não iniciadas</div>
+  `;
+}
+
+/* ── RENDER GRID ── */
+function render() {
+  const items = getFiltered();
+  renderStats(items);
+
+  if(items.length === 0) {
+    document.getElementById('grid').innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <div>Nenhuma matéria encontrada.</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('grid').innerHTML = items.map(s => cardHTML(s)).join('');
+}
+
+/* ── TOGGLE CARD ── */
+function toggleCard(id) {
+  document.getElementById('card-'+id)?.classList.toggle('open');
+}
+
+/* ── UPDATE STATUS ── */
+function updateStatus(id, val) {
+  state.status[id] = val;
+  saveState();
+  const card = document.getElementById('card-'+id);
+  if(card) {
+    const dot = card.querySelector('.status-dot');
+    const cls = { none:'dot-none', studying:'dot-studying', review:'dot-review', done:'dot-done' };
+    dot.className = 'status-dot ' + (cls[val] || 'dot-none');
+  }
+  renderStats(getFiltered());
+}
+
+/* ── FILTER BUTTONS ── */
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeFilter = btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('active-all','active-fs','active-de','active-bb','active-dio');
+    });
+    const cls = activeFilter === 'all' ? 'active-all' : 'active-'+activeFilter;
+    btn.classList.add(cls);
+    render();
+  });
+});
+
+/* ── SEARCH ── */
+document.getElementById('search').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  render();
+});
+
+/* ── INIT ── */
+loadState();
+render();
+
+</script>
+</body>
+</html>

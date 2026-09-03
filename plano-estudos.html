@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrionStudy</title>
+<script src="shared.js"></script>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --surface2: #1a1a38;
+  --border: #2a2a55;
+  --text: #e2e2f0;
+  --muted: #7777aa;
+  --fs: #a855f7;
+  --de: #06b6d4;
+  --bb: #f59e0b;
+  --ok: #10b981;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 24px; display: flex; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px;
+}
+.logo {
+  font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #a855f7, #ec4899, #f59e0b);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.streak {
+  display: flex; align-items: center; gap: 6px;
+  background: #f59e0b1a; border: 1px solid #f59e0b44;
+  border-radius: 99px; padding: 4px 12px; font-size: 0.82rem; font-weight: 700; color: #fbbf24;
+}
+.streak svg { color: #f97316; }
+.date-disp { color: var(--muted); font-size: 0.82rem; }
+
+.quote-bar {
+  background: #a855f70a; border-bottom: 1px solid #a855f720;
+  padding: 9px 24px; text-align: center; font-size: 0.82rem;
+  color: #c084fc; font-style: italic;
+}
+
+.nav {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 12px; display: flex; overflow-x: auto; gap: 2px; scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: none; color: var(--muted);
+  padding: 12px 15px; cursor: pointer; font-size: 0.85rem; font-weight: 500;
+  border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s;
+}
+.nav-btn:hover { color: var(--text); }
+.nav-btn.active { color: #a855f7; border-bottom-color: #a855f7; }
+.nav-btn.active svg { color: #a855f7; }
+.nav-btn svg { flex-shrink: 0; }
+
+.content { max-width: 1080px; margin: 0 auto; padding: 24px 20px 80px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.sec-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.sec-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 18px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+
+.prog-bar { height: 7px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 11px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; margin-bottom: 10px;
+}
+.badge svg { flex-shrink: 0; }
+.badge-fs { background: #a855f71a; color: #c084fc; border: 1px solid #a855f740; }
+.badge-de { background: #06b6d41a; color: #22d3ee; border: 1px solid #06b6d440; }
+.badge-bb { background: #f59e0b1a; color: #fbbf24; border: 1px solid #f59e0b40; }
+.badge-sk { background: #10b9811a; color: #34d399; border: 1px solid #10b98140; }
+
+.task-list { list-style: none; }
+.task-item {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s; user-select: none;
+}
+.task-item:hover { background: var(--surface2); }
+.task-item.done .task-text { text-decoration: line-through; color: var(--muted); }
+.chk {
+  width: 19px; height: 19px; border: 2px solid var(--border); border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px; transition: all 0.2s;
+}
+.task-item.done .chk { background: var(--ok); border-color: var(--ok); }
+.chk-icon { display: none; color: white; }
+.task-item.done .chk-icon { display: flex; }
+.task-text { font-size: 0.875rem; line-height: 1.5; }
+
+.phase-wrap { margin-bottom: 10px; }
+.phase-head {
+  padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; border-radius: 12px 12px 0 0;
+}
+.phase-head:hover { filter: brightness(1.08); }
+.phase-title-text { font-size: 0.92rem; font-weight: 700; }
+.phase-meta { font-size: 0.78rem; opacity: 0.75; display: flex; align-items: center; gap: 10px; }
+.phase-body { border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
+.phase-body.collapsed { display: none; }
+
+.focus-card { border-radius: var(--radius); padding: 26px 28px; margin-bottom: 18px; }
+.focus-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.6; margin-bottom: 6px; }
+.focus-area { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; }
+.focus-time { font-size: 0.85rem; opacity: 0.75; margin-bottom: 6px; }
+.focus-tip { font-size: 0.85rem; opacity: 0.65; font-style: italic; }
+
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
+@media (max-width: 580px) { .overview-grid { grid-template-columns: 1fr; } }
+.ov-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.ov-name { font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.ov-pct { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; }
+.ov-count { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+
+.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 24px; }
+@media (max-width: 700px) { .week-grid { grid-template-columns: repeat(2, 1fr); } }
+.day-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.day-card.today { border-width: 1.5px; }
+.day-name { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+.day-area-dot { width: 6px; height: 6px; border-radius: 99px; display: inline-block; margin-right: 5px; }
+.day-area-label { font-size: 0.72rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; }
+.day-tasks { font-size: 0.71rem; color: var(--muted); list-style: none; }
+.day-tasks li { padding: 2px 0; line-height: 1.4; }
+.day-tasks li::before { content: '—'; margin-right: 5px; opacity: 0.4; }
+
+.proj-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; transition: border-color 0.2s; }
+.proj-card:hover { border-color: #4444aa; }
+.proj-level { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 5px; }
+.proj-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+.proj-desc { font-size: 0.83rem; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+.proj-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.tag { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; background: var(--surface2); color: var(--muted); }
+.status-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 99px; border: none;
+  cursor: pointer; font-size: 0.78rem; font-weight: 700; transition: all 0.2s;
+}
+.s-pending { background: var(--surface2); color: var(--muted); }
+.s-progress { background: #06b6d41a; color: #22d3ee; }
+.s-done { background: #10b9811a; color: #34d399; }
+
+.emer-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(135deg, #ef4444, #f59e0b);
+  border: none; color: white; padding: 13px 28px; border-radius: 10px;
+  font-size: 0.9rem; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 18px; transition: opacity 0.2s;
+}
+.emer-btn:hover { opacity: 0.88; }
+.emer-panel { display: none; }
+.emer-panel.visible { display: block; }
+
+.pomo-card {
+  background: #a855f70a; border: 1px solid #a855f728;
+  border-radius: var(--radius); padding: 20px; margin-bottom: 14px;
+}
+.pomo-title { font-size: 0.92rem; font-weight: 700; color: #c084fc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.pomo-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.875rem; }
+.pomo-dot { width: 8px; height: 8px; border-radius: 99px; background: #a855f7; flex-shrink: 0; }
+.pomo-dot.rest { background: var(--muted); }
+
+.divider-title {
+  display: flex; align-items: center; gap: 12px; margin: 22px 0 14px;
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted);
+}
+.divider-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.rule-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 14px; background: var(--surface2); border-radius: 8px; margin-bottom: 7px; font-size: 0.875rem;
+}
+.rule-icon { flex-shrink: 0; margin-top: 2px; }
+
+.highlight-card {
+  border-left: 3px solid; border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 16px; margin-bottom: 14px; background: var(--surface2); font-size: 0.875rem; line-height: 1.7;
+}
+
+.rest-card {
+  border-radius: var(--radius); padding: 40px 32px; text-align: center;
+  background: var(--surface); border: 1px solid var(--border); margin-bottom: 18px;
+}
+.rest-title { font-size: 1.6rem; font-weight: 800; color: var(--muted); margin-bottom: 8px; }
+.rest-sub { font-size: 0.9rem; color: var(--muted); max-width: 480px; margin: 0 auto; line-height: 1.8; }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--ok); color: white; padding: 10px 22px; border-radius: 99px;
+  font-size: 0.83rem; font-weight: 600; z-index: 9998; opacity: 0;
+  transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+#confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; display: none; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.situation-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; align-items: flex-start; }
+.situation-row:last-child { border-bottom: none; }
+.situation-dot { width: 10px; height: 10px; border-radius: 99px; flex-shrink: 0; margin-top: 5px; }
+
+/* ═══════════ MODO CLARO — ativado por data-theme="light" no <html> ═══════════ */
+:root[data-theme="light"] {
+  --bg: #f4f4fa;
+  --surface: #ffffff;
+  --surface2: #ededf5;
+  --border: #dadae8;
+  --text: #1c1c30;
+  --muted: #5f5f7c;
+  --fs: #7c3aed;
+  --de: #0e7490;
+  --bb: #b45309;
+  --ok: #047857;
+}
+:root[data-theme="light"] body { background: var(--bg); color: var(--text); }
+/* acentos que no JS vêm com cor clara fixa (ok no escuro, fracos no claro) */
+:root[data-theme="light"] .quote-bar { color: #6d28d9; }
+:root[data-theme="light"] .streak { color: #b45309; }
+:root[data-theme="light"] .badge-fs { color: #6d28d9; }
+:root[data-theme="light"] .badge-de { color: #0e7490; }
+:root[data-theme="light"] .badge-bb { color: #b45309; }
+:root[data-theme="light"] .badge-sk { color: #047857; }
+:root[data-theme="light"] .nav-btn.active,
+:root[data-theme="light"] .nav-btn.active svg { color: #7c3aed; border-bottom-color: #7c3aed; }
+/* títulos que recebem cor via style inline no JS: prioriza legibilidade */
+:root[data-theme="light"] .ov-name,
+:root[data-theme="light"] .ov-pct,
+:root[data-theme="light"] .focus-area,
+:root[data-theme="light"] .focus-label,
+:root[data-theme="light"] .phase-title-text,
+:root[data-theme="light"] .day-area-label { color: #26263f !important; }
+
+/* ── INTENSIDADE DAS TRILHAS (itens 1 e 5) ── */
+.intens-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 99px;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: .03em; vertical-align: middle; margin-left: 8px;
+  background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
+}
+.intens-moderada { opacity: .75; }
+.intens-pausada { opacity: .5; }
+.nav-btn.intens-moderada, .nav-btn.intens-pausada { opacity: .55; }
+.intens-select {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 6px; padding: 3px 7px; font-size: .72rem; cursor: pointer;
+}
+
+/* ── BADGE "+ Sankhya" NOS TÓPICOS (item 3) ── */
+.tag-sk {
+  display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 99px;
+  font-size: .62rem; font-weight: 700; white-space: nowrap; vertical-align: middle;
+  background: #10b9811a; color: #34d399; border: 1px solid #10b98140;
+}
+
+/* ── BARRA / BANNER DE REAVALIAÇÃO (item 7) ── */
+.reaval-bar {
+  max-width: 1080px; margin: 0 auto; padding: 12px 20px 0;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+}
+.reaval-edit { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.reaval-edit input {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 6px; padding: 4px 8px; font-size: .78rem;
+}
+.reaval-banner {
+  width: 100%; background: #f59e0b14; border: 1px solid #f59e0b44; color: #fbbf24;
+  border-radius: 10px; padding: 10px 14px; font-size: .83rem; font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<header class="header">
+  <div class="logo">OrionStudy</div>
+  <div class="header-right">
+    <span class="streak" id="streak-el">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      <span id="streak-count">0 dias</span>
+    </span>
+    <span class="date-disp" id="date-el"></span>
+  </div>
+</header>
+<div class="quote-bar" id="quote-el"></div>
+
+<nav class="nav">
+  <button class="nav-btn active" data-tab="hoje">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+    Hoje
+  </button>
+  <button class="nav-btn" data-tab="semana">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+    Semana
+  </button>
+  <button class="nav-btn" data-tab="fullstack">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+    Fullstack
+  </button>
+  <button class="nav-btn" data-tab="dados">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+    Dados
+  </button>
+  <button class="nav-btn" data-tab="bb">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="22"/><line x1="10" x2="10" y1="18" y2="22"/><line x1="14" x2="14" y1="18" y2="22"/><line x1="18" x2="18" y1="18" y2="22"/><polygon points="12 2 20 7 4 7"/></svg>
+    BB
+  </button>
+  <!-- SANKHYA COMO TRILHA — desativado até a universidade Sankhya liberar os cursos oficiais da DIO (SQL + Java).
+       Para reativar: descomente este botão + o <div id="tab-sankhya"> em <main> + troque SANKHYA_TRILHA_ATIVA para true.
+  <button class="nav-btn" data-tab="sankhya">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="6" rx="1"/><rect x="2" y="15" width="20" height="6" rx="1"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+    Sankhya
+  </button>
+  -->
+  <button class="nav-btn" data-tab="projetos">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.65-8.6 3.91a2 2 0 0 1-1.8 0L3 12.65"/><path d="m22 17.65-8.6 3.91a2 2 0 0 1-1.8 0L3 17.65"/></svg>
+    Projetos
+  </button>
+  <button class="nav-btn" data-tab="motivacao">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+    Anti-Desistência
+  </button>
+  <a class="nav-btn" href="biblioteca.html" style="text-decoration:none">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+    Biblioteca
+  </a>
+  <a class="nav-btn" href="cronograma.html" style="text-decoration:none">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+    Gran Cursos
+  </a>
+</nav>
+
+<div id="reaval-bar" class="reaval-bar">
+  <div id="reaval-banner" class="reaval-banner" style="display:none"></div>
+  <label class="reaval-edit">
+    Próxima reavaliação do plano:
+    <input type="date" id="reaval-date">
+  </label>
+</div>
+
+<main class="content">
+  <div id="tab-hoje" class="tab-panel active"></div>
+  <div id="tab-semana" class="tab-panel"></div>
+  <div id="tab-fullstack" class="tab-panel"></div>
+  <div id="tab-dados" class="tab-panel"></div>
+  <div id="tab-bb" class="tab-panel"></div>
+  <!-- <div id="tab-sankhya" class="tab-panel"></div> -->
+  <div id="tab-projetos" class="tab-panel"></div>
+  <div id="tab-motivacao" class="tab-panel"></div>
+</main>
+
+<script>
+/* ── ICONS ── */
+const IC = {
+  code: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>`,
+  db:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>`,
+  bank: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="22"/><line x1="10" x2="10" y1="18" y2="22"/><line x1="14" x2="14" y1="18" y2="22"/><line x1="18" x2="18" y1="18" y2="22"/><polygon points="12 2 20 7 4 7"/></svg>`,
+  check:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
+  clock:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  play: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+  done: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>`,
+  alert:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
+  timer:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/></svg>`,
+  moon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
+  phone:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>`,
+  target:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  skip: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>`,
+  repeat:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
+  star: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  server:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="6" rx="1"/><rect x="2" y="15" width="20" height="6" rx="1"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>`,
+};
+
+/* ── QUOTES ── */
+const QUOTES = [
+  "Progresso, não perfeição. Uma tarefa concluída vale mais que um plano perfeito na cabeça.",
+  "Você não precisa de motivação. Precisa de um sistema. É isso que estamos construindo.",
+  "Os dias que você não quer estudar são exatamente os que mais importam.",
+  "Consistência bate intensidade. Sempre. Todo dia.",
+  "Uma coisa por vez. Um dia por vez. É assim que grandes conquistas acontecem.",
+  "Você já sabe mais do que sabia ontem. Isso já é suficiente por hoje.",
+  "Estudar 30 minutos hoje é melhor que estudar 3 horas 'quando der'.",
+  "Cada tarefa marcada é uma prova de que você é capaz.",
+  "Você está investindo em você mesma. Isso nunca é desperdício.",
+  "Não compare seu começo com o meio de outra pessoa.",
+  "O segredo é não parar. Nem que seja só um item da lista hoje.",
+];
+
+/* ── WEEK SCHEDULE ── */
+const WEEK = [
+  { day:"Domingo",  area:"Descanso",          color:"#7777aa", time:"—",        tasks:["Sem metas hoje","Revise se quiser, mas não force","Descanse de verdade"] },
+  { day:"Segunda",  area:"Fullstack",          color:"#a855f7", time:"90 min",   tasks:["Estudar 1 conceito novo","Escrever código por 30 min","Commitar no GitHub"] },
+  { day:"Terça",    area:"Banco do Brasil",    color:"#f59e0b", time:"90 min",   tasks:["Estudar 1 matéria de TI","Resolver 10 questões","Anotar erros no caderno"] },
+  { day:"Quarta",   area:"Eng. de Dados",      color:"#06b6d4", time:"90 min",   tasks:["Avançar 1 tópico Python/SQL","Escrever código no notebook","Testar localmente"] },
+  { day:"Quinta",   area:"Fullstack",          color:"#a855f7", time:"90 min",   tasks:["Continuar projeto prático","Revisar conceito anterior","Push no GitHub"] },
+  { day:"Sexta",    area:"Banco do Brasil",    color:"#f59e0b", time:"90 min",   tasks:["Matéria nova de TI","Simulado (15 questões)","Revisão dos erros da semana"] },
+  { day:"Sábado",   area:"Eng. de Dados",      color:"#06b6d4", time:"120 min",  tasks:["Avanço maior em dados","Projeto prático","Documentar o que aprendeu"] },
+];
+
+/* ── FULLSTACK DATA ── */
+const FS = { label:"Fullstack", color:"#a855f7", grad:"linear-gradient(135deg,#a855f7,#ec4899)", phases:[
+  { id:"fs1", name:"Fase 1 — HTML, CSS e JavaScript", weeks:"Semanas 1–4", color:"#a855f7", tasks:[
+    {id:"fs1-01",t:"HTML semântico: estrutura, header, main, footer, section, article"},
+    {id:"fs1-02",t:"HTML: formulários, inputs, labels e validação básica"},
+    {id:"fs1-03",t:"HTML: tabelas, listas, links e imagens"},
+    {id:"fs1-04",t:"CSS: box model — margin, padding, border, display"},
+    {id:"fs1-05",t:"CSS: Flexbox — alinhamento, direção, wrap"},
+    {id:"fs1-06",t:"CSS: Grid — columns, rows, areas, gap"},
+    {id:"fs1-07",t:"CSS: variáveis, cores e tipografia"},
+    {id:"fs1-08",t:"CSS: responsividade e media queries"},
+    {id:"fs1-09",t:"JavaScript: variáveis (let, const), tipos e operadores"},
+    {id:"fs1-10",t:"JavaScript: condicionais (if/else, switch) e loops (for, while)"},
+    {id:"fs1-11",t:"JavaScript: funções, arrow functions, escopo"},
+    {id:"fs1-12",t:"JavaScript: arrays — map, filter, reduce, forEach"},
+    {id:"fs1-13",t:"JavaScript: objetos e desestruturação"},
+    {id:"fs1-14",t:"JavaScript: manipulação do DOM (querySelector, innerHTML, classList)"},
+    {id:"fs1-15",t:"JavaScript: eventos (click, submit, input) e localStorage"},
+    {id:"fs1-16",t:"Git: init, add, commit, push — fluxo básico"},
+    {id:"fs1-17",t:"Git: branches, merge e pull request"},
+  ]},
+  { id:"fs2", name:"Fase 2 — React + Firebase", weeks:"Semanas 5–10", color:"#ec4899", tasks:[
+    {id:"fs2-01",t:"React: criar projeto com Vite, entender estrutura de pastas"},
+    {id:"fs2-02",t:"React: componentes funcionais e JSX"},
+    {id:"fs2-03",t:"React: props — passar e receber dados entre componentes"},
+    {id:"fs2-04",t:"React: useState — controle de estado local"},
+    {id:"fs2-05",t:"React: useEffect — ciclo de vida e efeitos colaterais"},
+    {id:"fs2-06",t:"React: formulários controlados (input conectado ao state)"},
+    {id:"fs2-07",t:"React: React Router — configurar rotas e navegação"},
+    {id:"fs2-08",t:"React: renderização condicional e listas com map + key"},
+    {id:"fs2-09",t:"Firebase: criar projeto e conectar ao React"},
+    {id:"fs2-10",t:"Firebase: Firestore — ler e escrever documentos"},
+    {id:"fs2-11",t:"Firebase: autenticação com email e senha"},
+    {id:"fs2-12",t:"CRUD completo: Create, Read, Update, Delete com Firestore"},
+  ]},
+  { id:"fs3", name:"Fase 3 — TypeScript + Deploy", weeks:"Semanas 11–16", color:"#7c3aed", tasks:[
+    {id:"fs3-01",t:"TypeScript: tipos básicos (string, number, boolean, array)"},
+    {id:"fs3-02",t:"TypeScript: interfaces e tipos customizados"},
+    {id:"fs3-03",t:"TypeScript: tipar props e estado em componentes React"},
+    {id:"fs3-04",t:"Firebase: regras de segurança do Firestore"},
+    {id:"fs3-05",t:"Firebase: Storage — upload de arquivos e imagens"},
+    {id:"fs3-06",t:"APIs REST: consumo e criação com fetch/axios, autenticação (OAuth 2.0, API keys, JWT) e manipulação de JSON", tags:["Sankhya"]},
+    {id:"fs3-07",t:"Context API — estado global sem prop drilling"},
+    {id:"fs3-08",t:"Variáveis de ambiente (.env) e boas práticas de segurança"},
+    {id:"fs3-09",t:"Deploy: Firebase Hosting ou Vercel — publicar o app online"},
+  ]},
+  { id:"fs4", name:"Fase 4 — Projeto Real para Portfolio", weeks:"Semanas 17–20", color:"#a855f7", tasks:[
+    {id:"fs4-01",t:"Escolher o projeto final e listar funcionalidades"},
+    {id:"fs4-02",t:"Criar wireframe e protótipo (Figma ou papel)"},
+    {id:"fs4-03",t:"Estruturar o projeto e configurar Firebase"},
+    {id:"fs4-04",t:"Implementar autenticação e proteção de rotas"},
+    {id:"fs4-05",t:"Implementar funcionalidades principais (CRUD)"},
+    {id:"fs4-06",t:"Estilizar e deixar responsivo"},
+    {id:"fs4-07",t:"Testar, corrigir bugs e fazer code review próprio"},
+    {id:"fs4-08",t:"Deploy final, README no GitHub e adicionar ao portfolio"},
+  ]},
+]};
+
+/* ── DADOS DATA ── */
+const DE = { label:"Eng. de Dados", color:"#06b6d4", grad:"linear-gradient(135deg,#06b6d4,#3b82f6)", phases:[
+  { id:"de1", name:"Fase 1 — Python + SQL + Pandas", weeks:"Semanas 1–8", color:"#06b6d4", tasks:[
+    {id:"de1-01",t:"Python: variáveis, tipos, input e print"},
+    {id:"de1-02",t:"Python: condicionais e loops (for, while)"},
+    {id:"de1-03",t:"Python: funções, argumentos e retorno"},
+    {id:"de1-04",t:"Python: listas, dicionários, tuplas e sets"},
+    {id:"de1-05",t:"Python: leitura e escrita de arquivos CSV e texto"},
+    {id:"de1-06",t:"Python: OOP básico — classes, atributos, métodos"},
+    {id:"de1-07",t:"Python: tratamento de erros com try/except"},
+    {id:"de1-08",t:"SQL: SELECT, WHERE, ORDER BY, LIMIT", tags:["Sankhya"]},
+    {id:"de1-09",t:"SQL: GROUP BY, HAVING e funções agregadas (COUNT, SUM, AVG)", tags:["Sankhya"]},
+    {id:"de1-10",t:"SQL: JOINs — INNER, LEFT, RIGHT, FULL OUTER", tags:["Sankhya"]},
+    {id:"de1-11",t:"SQL: subqueries e CTEs (WITH)", tags:["Sankhya"]},
+    {id:"de1-12",t:"SQL: CREATE TABLE, INSERT, UPDATE, DELETE", tags:["Sankhya"]},
+    {id:"de1-13",t:"Pandas: instalar, importar, ler CSV e Excel"},
+    {id:"de1-14",t:"Pandas: filtros, seleções (.loc, .iloc), slicing"},
+    {id:"de1-15",t:"Pandas: groupby, merge, concat e join"},
+    {id:"de1-16",t:"Pandas: limpeza básica — nulos, duplicatas, tipos de coluna"},
+  ]},
+  { id:"de2", name:"Fase 2 — ETL + Modelagem de Dados", weeks:"Semanas 9–16", color:"#3b82f6", tasks:[
+    {id:"de2-01",t:"ETL: conceito de Extract, Transform, Load"},
+    {id:"de2-02",t:"ETL: criar pipeline manual em Python (CSV → transform → SQL)"},
+    {id:"de2-03",t:"Modelagem: Star Schema — tabelas fato e dimensão"},
+    {id:"de2-04",t:"Modelagem: Snowflake Schema e quando usar cada um"},
+    {id:"de2-05",t:"PostgreSQL: instalação, setup e conexão via Python"},
+    {id:"de2-06",t:"SQLAlchemy: conectar e executar queries em Python"},
+    {id:"de2-07",t:"Pandas avançado: pivot_table, melt, stack/unstack"},
+    {id:"de2-08",t:"Qualidade de dados: identificar e tratar valores nulos"},
+    {id:"de2-09",t:"Qualidade de dados: remover duplicatas, normalizar strings"},
+    {id:"de2-10",t:"Visualização: matplotlib e seaborn — gráficos básicos"},
+  ]},
+  { id:"de3", name:"Fase 3 — Cloud, dbt e Airflow", weeks:"Semanas 17–24", color:"#06b6d4", tasks:[
+    {id:"de3-01",t:"Cloud: conceitos IaaS, PaaS, SaaS e modelos de implantação"},
+    {id:"de3-02",t:"GCP: principais serviços — BigQuery, GCS, Dataflow"},
+    {id:"de3-03",t:"BigQuery: criar conta gratuita e executar queries básicas"},
+    {id:"de3-04",t:"BigQuery: particionamento e clustering para performance"},
+    {id:"de3-05",t:"dbt: entender transformação de dados declarativa"},
+    {id:"de3-06",t:"dbt: criar models, sources, refs e rodar testes"},
+    {id:"de3-07",t:"Airflow: conceito de DAG e orquestração"},
+    {id:"de3-08",t:"Airflow: BashOperator e PythonOperator na prática"},
+    {id:"de3-09",t:"Pipeline end-to-end: dados reais do início ao fim"},
+  ]},
+]};
+
+/* ── BB DATA ── */
+const BB = { label:"Banco do Brasil", color:"#f59e0b", grad:"linear-gradient(135deg,#f59e0b,#f97316)", groups:[
+  { id:"bb1", high:false, name:"Língua Portuguesa", tasks:[
+    {id:"bb1-01",t:"Interpretação de texto — questões reais de concurso"},
+    {id:"bb1-02",t:"Coesão e coerência textual"},
+    {id:"bb1-03",t:"Ortografia e acentuação"},
+    {id:"bb1-04",t:"Concordância verbal e nominal"},
+    {id:"bb1-05",t:"Crase e pontuação"},
+    {id:"bb1-06",t:"Regência verbal e nominal"},
+  ]},
+  { id:"bb2", high:false, name:"Inglês Técnico", tasks:[
+    {id:"bb2-01",t:"Vocabulário técnico de TI em inglês"},
+    {id:"bb2-02",t:"Interpretação de textos técnicos em inglês"},
+    {id:"bb2-03",t:"Tempos verbais mais cobrados em prova"},
+  ]},
+  { id:"bb3", high:true, name:"Matemática e Estatística — alto peso", tasks:[
+    {id:"bb3-01",t:"Porcentagem e variação percentual"},
+    {id:"bb3-02",t:"Juros simples e compostos"},
+    {id:"bb3-03",t:"Regra de três simples e composta"},
+    {id:"bb3-04",t:"Razão e proporção"},
+    {id:"bb3-05",t:"Probabilidade: espaço amostral, eventos independentes"},
+    {id:"bb3-06",t:"Média, mediana, moda e desvio padrão"},
+    {id:"bb3-07",t:"Distribuição normal: conceito e aplicação"},
+    {id:"bb3-08",t:"Estatística descritiva: tabelas e gráficos"},
+  ]},
+  { id:"bb4", high:false, name:"Conhecimentos Bancários", tasks:[
+    {id:"bb4-01",t:"Sistema Financeiro Nacional (SFN) — estrutura e agentes"},
+    {id:"bb4-02",t:"Banco Central, CMN, CVM — funções e diferenças"},
+    {id:"bb4-03",t:"Produtos bancários: CDB, LCI, LCA, Tesouro Direto, fundos"},
+    {id:"bb4-04",t:"Meios de pagamento: PIX, TED, DOC, boleto"},
+    {id:"bb4-05",t:"Crédito: análise de crédito, garantias, tipos de risco"},
+    {id:"bb4-06",t:"Prevenção à lavagem de dinheiro — COAF e legislação"},
+    {id:"bb4-07",t:"Tipos de conta: corrente, poupança, salário, pagamento"},
+  ]},
+  { id:"bb5", high:false, name:"Atualidades do Mercado Financeiro", tasks:[
+    {id:"bb5-01",t:"Taxa SELIC: o que é e como afeta a economia"},
+    {id:"bb5-02",t:"Inflação: IPCA, IGPM — metas e impacto"},
+    {id:"bb5-03",t:"Câmbio: como funciona e fatores de variação"},
+    {id:"bb5-04",t:"Mercado de capitais: ações, FIIs, ETFs, debêntures"},
+    {id:"bb5-05",t:"Open Banking e Open Finance — conceito e impacto"},
+    {id:"bb5-06",t:"Criptomoedas e ativos digitais — conceitos básicos"},
+  ]},
+  { id:"bb6", high:true, name:"TI — Banco de Dados — alto peso", tasks:[
+    {id:"bb6-01",t:"Modelo relacional e normalização (1FN, 2FN, 3FN)"},
+    {id:"bb6-02",t:"SQL para concurso: DDL, DML, DCL, DTL"},
+    {id:"bb6-03",t:"NoSQL: tipos (documento, chave-valor, grafo, coluna) e usos"},
+    {id:"bb6-04",t:"Transações ACID: atomicidade, consistência, isolamento, durabilidade"},
+    {id:"bb6-05",t:"Índices, views e stored procedures — conceitos de prova"},
+  ]},
+  { id:"bb7", high:true, name:"TI — Redes — alto peso", tasks:[
+    {id:"bb7-01",t:"Modelo OSI: 7 camadas e funções de cada uma"},
+    {id:"bb7-02",t:"TCP/IP: camadas, protocolos e endereçamento"},
+    {id:"bb7-03",t:"Protocolos: HTTP, HTTPS, FTP, DNS, SMTP, SSH, DHCP"},
+    {id:"bb7-04",t:"IPv4, IPv6 e sub-redes (CIDR / máscara de rede)"},
+    {id:"bb7-05",t:"Equipamentos: roteador, switch, hub, bridge, access point"},
+    {id:"bb7-06",t:"VPN, proxy, NAT e firewall"},
+  ]},
+  { id:"bb8", high:true, name:"TI — Segurança da Informação — alto peso", tasks:[
+    {id:"bb8-01",t:"Princípios CID: Confidencialidade, Integridade, Disponibilidade"},
+    {id:"bb8-02",t:"Criptografia: simétrica vs assimétrica — diferenças e exemplos"},
+    {id:"bb8-03",t:"Certificado digital, PKI e assinatura digital"},
+    {id:"bb8-04",t:"Ameaças: malware, phishing, ransomware, engenharia social, DoS"},
+    {id:"bb8-05",t:"Autenticação multifator (MFA) e controle de acesso (RBAC)"},
+    {id:"bb8-06",t:"LGPD: princípios, titular dos dados, controlador e operador"},
+    {id:"bb8-07",t:"Frameworks: ISO 27001, NIST Cybersecurity Framework, COBIT"},
+  ]},
+  { id:"bb9", high:false, name:"TI — Cloud Computing", tasks:[
+    {id:"bb9-01",t:"Modelos de implantação: pública, privada, híbrida, comunitária"},
+    {id:"bb9-02",t:"Modelos de serviço: IaaS, PaaS, SaaS — exemplos reais"},
+    {id:"bb9-03",t:"AWS e Azure: principais serviços cobrados em concurso"},
+    {id:"bb9-04",t:"Contêineres: Docker e Kubernetes — conceitos para prova"},
+    {id:"bb9-05",t:"Virtualização: hipervisores tipo 1 e tipo 2"},
+    {id:"bb9-06",t:"Alta disponibilidade, escalabilidade e disaster recovery"},
+  ]},
+  { id:"bb10", high:true, name:"TI — Desenvolvimento de Sistemas — alto peso", tasks:[
+    {id:"bb10-01",t:"SDLC: modelos cascata, espiral, incremental"},
+    {id:"bb10-02",t:"Metodologias ágeis: Scrum (eventos, artefatos, papéis), Kanban"},
+    {id:"bb10-03",t:"UML: diagrama de casos de uso, classe e sequência"},
+    {id:"bb10-04",t:"Padrões de projeto: conceito de Design Patterns (Singleton, Factory)"},
+    {id:"bb10-05",t:"Estruturas de dados: arrays, listas, filas, pilhas, árvores"},
+    {id:"bb10-06",t:"APIs REST: métodos HTTP, status codes, JSON, autenticação"},
+    {id:"bb10-07",t:"Lógica de programação: fluxogramas, pseudocódigo, algoritmos"},
+  ]},
+]};
+
+/* ── SANKHYA (SQL + JAVA) DATA ── */
+/* Fonte: DIO Pro (web.dio.me). Preparação p/ suporte e desenvolvimento Sankhya ERP. 4h/semana, dentro do horário comercial, 12 semanas. Não compete com a rotina pessoal (fs/de/bb) que roda fora do expediente. */
+const SK = { label:"SQL e Java — Sankhya ERP", color:"#10b981", grad:"linear-gradient(135deg,#10b981,#f97316)", phases:[
+  { id:"sk-w1", name:"Semana 1 — SQL Fundamentos", weeks:"DIO Pro · SQL Database Specialist", color:"#10b981", tasks:[
+    {id:"sk-w1-01",t:"Contextualização do cenário na Área de Banco de Dados"},
+    {id:"sk-w1-02",t:"Introdução a Banco de Dados Relacionais (SQL)"},
+    {id:"sk-w1-03",t:"Explorando a abordagem de SGBDs"},
+  ]},
+  { id:"sk-w2", name:"Semana 2 — SQL Fundamentos", weeks:"DIO Pro · SQL Database Specialist", color:"#10b981", tasks:[
+    {id:"sk-w2-01",t:"Primeiros Passos com SQL"},
+    {id:"sk-w2-02",t:"Explorando Queries com SQL"},
+  ]},
+  { id:"sk-w3", name:"Semana 3 — SQL Modelagem", weeks:"DIO Pro · SQL Database Specialist", color:"#059669", tasks:[
+    {id:"sk-w3-01",t:"Introdução à Modelagem de Dados"},
+    {id:"sk-w3-02",t:"Modelo de Entidade Relacionamento"},
+    {id:"sk-w3-03",t:"Fundamentos de Modelagem e Projeto de Banco de Dados"},
+  ]},
+  { id:"sk-w4", name:"Semana 4 — SQL Queries avançadas", weeks:"DIO Pro · SQL Database Specialist", color:"#059669", tasks:[
+    {id:"sk-w4-01",t:"Criando Queries com Funções e Cláusulas de Agrupamentos"},
+    {id:"sk-w4-02",t:"Explorando Cláusulas de DDL e Esquemas de Banco de Dados"},
+  ]},
+  { id:"sk-w5", name:"Semana 5 — SQL Reforço", weeks:"DIO Pro · SQL Database Specialist", color:"#10b981", tasks:[
+    {id:"sk-w5-01",t:"Personalizando acessos com Views"},
+    {id:"sk-w5-02",t:"Normalização em Banco de Dados"},
+  ]},
+  { id:"sk-w6", name:"Semana 6 — Java Ambiente e sintaxe", weeks:"DIO Pro · Java Fundamentals", color:"#f97316", tasks:[
+    {id:"sk-w6-01",t:"Introdução à Plataforma Java"},
+    {id:"sk-w6-02",t:"Ambiente de Desenvolvimento Java (ou versão Linux)"},
+    {id:"sk-w6-03",t:"Aprendendo a Sintaxe Java"},
+  ]},
+  { id:"sk-w7", name:"Semana 7 — Java Lógica", weeks:"DIO Pro · Java Fundamentals", color:"#f97316", tasks:[
+    {id:"sk-w7-01",t:"Introdução e Estruturas Condicionais com Java"},
+    {id:"sk-w7-02",t:"Estruturas de Repetição em Java"},
+    {id:"sk-w7-03",t:"Entendendo Métodos Java"},
+  ]},
+  { id:"sk-w8", name:"Semana 8 — Java POO (parte 1)", weeks:"DIO Pro · Java Fundamentals", color:"#ea580c", tasks:[
+    {id:"sk-w8-01",t:"Fundamentos da Programação Orientada a Objetos com Java"},
+    {id:"sk-w8-02",t:"Praticando Orientação a Objetos com Java"},
+  ]},
+  { id:"sk-w9", name:"Semana 9 — Java POO (parte 2)", weeks:"DIO Pro · Java Fundamentals", color:"#ea580c", tasks:[
+    {id:"sk-w9-01",t:"Programação Orientada a Objetos com Java (aprofundamento)"},
+    {id:"sk-w9-02",t:"Java e Tratamento de Exceções"},
+  ]},
+  { id:"sk-w10", name:"Semana 10 — Java Coleções", weeks:"DIO Pro · Java Fundamentals", color:"#f97316", tasks:[
+    {id:"sk-w10-01",t:"Conhecendo Collections Java"},
+    {id:"sk-w10-02",t:"Trabalhando com Collections Java"},
+    {id:"sk-w10-03",t:"Ganhando Produtividade com Stream API"},
+  ]},
+  { id:"sk-w11", name:"Semana 11 — Java Boas práticas", weeks:"DIO Pro · Java Fundamentals", color:"#f97316", tasks:[
+    {id:"sk-w11-01",t:"Aprenda sobre S.O.L.I.D. com Java"},
+    {id:"sk-w11-02",t:"Debugging Java"},
+    {id:"sk-w11-03",t:"Resolvendo Desafios de Código em Java"},
+  ]},
+  { id:"sk-w12", name:"Semana 12 — Java Build", weeks:"DIO Pro · Java Fundamentals", color:"#ea580c", tasks:[
+    {id:"sk-w12-01",t:"Gerenciamento de Dependências e Build em Java com Maven"},
+    {id:"sk-w12-02",t:"Revisão geral"},
+  ]},
+  { id:"sk-opt", name:"Opcional — sem prazo fixo (depois da semana 12)", weeks:"DIO Pro", color:"#7777aa", tasks:[
+    {id:"sk-opt-01",t:"SQL avançado: transações e concorrência"},
+    {id:"sk-opt-02",t:"SQL avançado: indexação e recuperação de dados"},
+    {id:"sk-opt-03",t:"Java: Estrutura de Dados (Listas, Pilhas, Árvores) — só depois de dominar POO"},
+    {id:"sk-opt-04",t:"Java: Introdução ao JUnit 5"},
+    {id:"sk-opt-05",t:"Java: Introdução a BDD com Java"},
+    {id:"sk-opt-06",t:"SQL Server específico (cursos avulsos), se confirmado como o SGBD do Sankhya"},
+  ]},
+]};
+
+/* ── PROJECTS ── */
+const PROJECTS = [
+  {id:"p1",area:"fs",level:"Iniciante",    title:"Lista de Tarefas com Firebase",   desc:"Primeiro CRUD completo com autenticação real. Pequeno, mas prova que você domina o ciclo inteiro.",       tags:["React","Firebase","CRUD","Auth"]},
+  {id:"p2",area:"fs",level:"Intermediário",title:"App de Finanças Pessoais",        desc:"Receitas e despesas por categoria, gráficos simples e deploy. Bom projeto para portfolio.",               tags:["React","TypeScript","Firebase","Gráficos"]},
+  {id:"p3",area:"fs",level:"Avançado",     title:"Projeto Final do Portfolio",      desc:"Um app real para o CV. Auth, CRUD, deploy, README e visual bonito. Você escolhe o tema.",                  tags:["Fullstack","Deploy","TypeScript","Firebase"]},
+  {id:"p4",area:"de",level:"Iniciante",    title:"Analisador de Gastos em Python",  desc:"Carregue seu extrato bancário (CSV) e analise com Pandas. Em quais categorias você gasta mais?",         tags:["Python","Pandas","CSV"]},
+  {id:"p5",area:"de",level:"Intermediário",title:"Pipeline ETL com Dados Abertos",  desc:"Dados do Portal da Transparência ou IBGE: extraia, transforme e carregue em banco SQL.",                  tags:["Python","ETL","SQL","PostgreSQL"]},
+  {id:"p6",area:"de",level:"Avançado",     title:"Dashboard BigQuery + dbt",        desc:"Pipeline cloud end-to-end: ingestão, BigQuery, transformação dbt e visualização.",                          tags:["BigQuery","dbt","GCP"]},
+  {id:"p7",area:"bb",level:"Contínuo",     title:"Caderno Digital de Erros",        desc:"Toda questão errada entra aqui com o motivo e a resposta certa. Revisão semanal obrigatória.",              tags:["Revisão","Disciplina"]},
+  {id:"p8",area:"bb",level:"Contínuo",     title:"Simulados Semanais de TI",        desc:"20 questões toda sexta. Foco em Redes, Segurança, BD e Desenvolvimento. Cronometre-se.",                   tags:["Prova","Questões","TI"]},
+];
+
+/* ══════════════════════════════════════════════════════════════════════
+   SANKHYA — CONTROLE DE ATIVAÇÃO
+   Enquanto a universidade Sankhya não liberar os cursos oficiais da DIO
+   (SQL + Java), Sankhya NÃO é trilha com bloco de tempo próprio: é uma
+   camada marcada pela tag "Sankhya" nos tópicos de Fullstack e Dados
+   (ver taskTags / badge "+ Sankhya").
+
+   PARA REATIVAR Sankhya como trilha própria quando a universidade abrir:
+     1) troque SANKHYA_TRILHA_ATIVA para true
+     2) descomente o <button data-tab="sankhya"> na <nav>
+     3) descomente o <div id="tab-sankhya"> em <main>
+   Todo o resto (const SK, aba, cards em Hoje/Semana) volta sozinho pelo flag.
+   ══════════════════════════════════════════════════════════════════════ */
+const SANKHYA_TRILHA_ATIVA = false;
+
+/* Intensidade inicial por trilha: 'alta' | 'moderada' | 'pausada' (item 2) */
+const INTENS_PADRAO = { fs:'alta', de:'pausada', bb:'alta' /*, sk:'alta' */ };
+const INTENS_INFO = {
+  alta:     { ord:0, cls:'',                badge:'' },
+  moderada: { ord:1, cls:'intens-moderada', badge:'Ritmo reduzido' },
+  pausada:  { ord:2, cls:'intens-pausada',  badge:'Pausada' },
+};
+function trilhaIntens(key){
+  return (S.intensidade && S.intensidade[key]) || INTENS_PADRAO[key] || 'alta';
+}
+function setTrilhaIntens(key, val){
+  S.intensidade = S.intensidade || {};
+  S.intensidade[key] = val;
+  saveState();
+  rerenderAll();
+}
+function tabKey(tab){ return tab==='fullstack' ? 'fs' : tab==='dados' ? 'de' : tab; }
+
+/* Nota exibida na aba Sankhya quando ela estiver ativa */
+const SK_NOTE = `<strong style="color:#34d399">4h/semana, dentro do expediente</strong> — paralelo à rotina pessoal (Fullstack/Dados/BB), não compete com ela.<br><br>
+<strong style="color:#34d399">Antes de repetir:</strong> SQL básico (SELECT, JOIN, GROUP BY, DDL — Semanas 1, 2 e 4) já está coberto em <strong>Dados → Fase 1</strong> e em <strong>BB → TI-Banco de Dados</strong>. Modelagem/normalização (Semanas 3 e 5) também tem sobreposição com <strong>BB → TI-Banco de Dados</strong>. Se já marcou aqueles tópicos como concluídos, pode acelerar essas semanas — revise em vez de assistir do zero. Java (Semanas 6-12) é conteúdo novo, sem trilha equivalente no site.`;
+
+/* ── STATE ── */
+let S = {tasks:{}, projects:{}, streak:0, lastStudyDate:null,
+         intensidade:{}, tags:{}, proximaReavaliacao:null};
+
+function loadState() {
+  let saved = {};
+  try { const s = localStorage.getItem('orion_v4'); if(s) saved = JSON.parse(s) || {}; } catch(e){}
+  // merge sobre os defaults — tolera backups antigos/parciais sem quebrar (item 6)
+  S = Object.assign({ tasks:{}, projects:{}, streak:0, lastStudyDate:null,
+                      intensidade:{}, tags:{}, proximaReavaliacao:null }, saved);
+  S.tasks = S.tasks || {};
+  S.projects = S.projects || {};
+  S.intensidade = Object.assign({}, INTENS_PADRAO, S.intensidade || {});
+  S.tags = S.tags || {};
+}
+function saveState() { try { localStorage.setItem('orion_v4', JSON.stringify(S)); } catch(e){} }
+function isDone(id) { return !!S.tasks[id]; }
+function projStatus(id) { return S.projects[id] || 'pending'; }
+function progress(tasks) {
+  const done = tasks.filter(t=>isDone(t.id)).length;
+  return { done, total:tasks.length, pct: tasks.length ? Math.round(done/tasks.length*100) : 0 };
+}
+function allTasks(area) {
+  if(area==='fs') return FS.phases.flatMap(p=>p.tasks);
+  if(area==='de') return DE.phases.flatMap(p=>p.tasks);
+  if(area==='bb') return BB.groups.flatMap(g=>g.tasks);
+  if(area==='sk') return SK.phases.flatMap(p=>p.tasks);
+  return [];
+}
+
+/* ── STREAK ── */
+function updateStreak() {
+  const today = new Date().toDateString();
+  if(S.lastStudyDate===today) return;
+  const yesterday = new Date(Date.now()-86400000).toDateString();
+  S.streak = (S.lastStudyDate===yesterday) ? (S.streak||0)+1 : 1;
+  S.lastStudyDate = today;
+  saveState();
+  renderStreak();
+}
+function renderStreak() {
+  const n = S.streak||0;
+  document.getElementById('streak-count').textContent = `${n} dia${n!==1?'s':''}`;
+}
+
+/* ── TOGGLE ── */
+function toggleTask(id, el) {
+  S.tasks[id] = !S.tasks[id];
+  saveState(); updateStreak();
+  el.classList.toggle('done', !!S.tasks[id]);
+  if(S.tasks[id]) showToast('Concluído.');
+  refreshProgress();
+}
+function cycleProject(id, btn) {
+  const c = {pending:'progress',progress:'done',done:'pending'};
+  S.projects[id] = c[projStatus(id)];
+  saveState();
+  const m = {
+    pending: [IC.clock+' Pendente','s-pending'],
+    progress:[IC.play+' Em andamento','s-progress'],
+    done:    [IC.done+' Concluído','s-done'],
+  };
+  const [txt,cls] = m[S.projects[id]];
+  btn.innerHTML = txt; btn.className = 'status-btn '+cls;
+}
+
+/* ── PROGRESS REFRESH ── */
+function refreshProgress() {
+  document.querySelectorAll('[data-prog]').forEach(el => {
+    const id = el.dataset.prog;
+    let tasks;
+    if(['fs','de','bb','sk'].includes(id)) tasks = allTasks(id);
+    else {
+      const ph = [...FS.phases,...DE.phases,...SK.phases].find(p=>p.id===id) || BB.groups.find(g=>g.id===id);
+      tasks = ph ? ph.tasks : [];
+    }
+    const {done,total,pct} = progress(tasks);
+    el.style.width = pct+'%';
+    const lbl = document.querySelector(`[data-prog-lbl="${id}"]`);
+    if(lbl) lbl.textContent = `${pct}% (${done}/${total})`;
+    const pEl = document.querySelector(`[data-prog-pct="${id}"]`);
+    if(pEl) pEl.textContent = pct+'%';
+    const cEl = document.querySelector(`[data-prog-count="${id}"]`);
+    if(cEl) cEl.textContent = `${done}/${total} tópicos`;
+  });
+}
+
+/* Une as tags estáticas do tópico com overrides salvos no localStorage (item 6) */
+function taskTags(t) {
+  const extra = (S.tags && S.tags[t.id]) || [];
+  return [...new Set([...(t.tags || []), ...extra])];
+}
+
+/* ── TASK HTML ── */
+function taskHTML(t) {
+  const skBadge = taskTags(t).includes('Sankhya')
+    ? `<span class="tag-sk" title="Este estudo também conta como progresso para Sankhya">+ Sankhya</span>`
+    : '';
+  return `<li class="task-item${isDone(t.id)?' done':''}" onclick="toggleTask('${t.id}',this)">
+    <span class="chk"><span class="chk-icon">${IC.check}</span></span>
+    <span class="task-text">${t.t}${skBadge}</span>
+  </li>`;
+}
+
+/* ── TOAST ── */
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+
+/* ── CONFETTI ── */
+function confetti() {
+  const cv = document.getElementById('confetti');
+  cv.style.display='block'; cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const ctx=cv.getContext('2d');
+  const cols=['#a855f7','#ec4899','#06b6d4','#f59e0b','#10b981'];
+  const ps=Array.from({length:100},()=>({
+    x:Math.random()*cv.width,y:-10,vx:(Math.random()-.5)*7,vy:Math.random()*3+2,
+    c:cols[~~(Math.random()*cols.length)],w:Math.random()*10+5,h:Math.random()*5+3,
+    r:Math.random()*360,rs:(Math.random()-.5)*12
+  }));
+  let f=0;
+  (function a(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;p.r+=p.rs;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r*Math.PI/180);
+      ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
+    if(++f<160) requestAnimationFrame(a); else cv.style.display='none';
+  })();
+}
+
+/* ── PHASE TOGGLE ── */
+function togglePhase(id) { document.getElementById('phase-'+id)?.classList.toggle('collapsed'); }
+
+/* ── SANKHYA COMO CAMADA (item 3): resumo no topo de Fullstack e Dados ── */
+function sankhyaHint(key){
+  if(!['fs','de'].includes(key)) return '';
+  const data = key==='fs' ? FS : DE;
+  const all = data.phases.flatMap(p=>p.tasks).filter(t=>taskTags(t).includes('Sankhya'));
+  if(!all.length) return '';
+  const done = all.filter(t=>isDone(t.id)).length;
+  return `<div class="highlight-card" style="border-color:#10b981;margin-bottom:18px">
+    <strong style="color:#34d399">Camada Sankhya:</strong> ${all.length} tópico(s) desta trilha
+    também contam como progresso para Sankhya — ${done}/${all.length} concluído(s).
+    <span style="color:var(--muted)">Quando a universidade Sankhya liberar os cursos DIO (SQL + Java),
+    Sankhya volta a ser trilha própria.</span>
+  </div>`;
+}
+
+/* ── ROTINA SEMANAL RESPEITA INTENSIDADE (item 5) ──
+   Enquanto uma trilha estiver "pausada", os dias dela na rotina semanal
+   são redirecionados para uma trilha de intensidade "alta" (Fullstack/BB),
+   alternando entre elas. Volta ao normal sozinho quando a trilha sai de
+   "pausada" (nada persistido: é recalculado a cada render). */
+function areaKeyOf(area){
+  if(area.includes('Dados')) return 'de';
+  if(area.includes('Banco') || area === 'BB') return 'bb';
+  if(area === 'Descanso') return null;
+  return 'fs';
+}
+const AREA_META = {
+  fs: { area:'Fullstack',       color:'#a855f7' },
+  de: { area:'Eng. de Dados',   color:'#06b6d4' },
+  bb: { area:'Banco do Brasil', color:'#f59e0b' },
+};
+function effectiveWeek(){
+  const alvos = ['fs','bb'].filter(k => trilhaIntens(k) === 'alta');
+  const pool = alvos.length ? alvos : ['fs']; // fallback defensivo
+  let i = 0;
+  return WEEK.map(d => {
+    const key = areaKeyOf(d.area);
+    if(!key || trilhaIntens(key) !== 'pausada') return d;
+    const alvo = pool[i++ % pool.length];
+    const m = AREA_META[alvo];
+    return {
+      ...d,
+      area: m.area,
+      color: m.color,
+      redirected: true,
+      redirectedFrom: d.area,
+      tasks: [
+        `${d.area} está pausada — foco do dia redirecionado para ${m.area}`,
+        `Avance 1 tópico novo de ${m.area}`,
+        'Marque o que concluir',
+      ],
+    };
+  });
+}
+
+/* ── INTENSIDADE VISUAL NAS ABAS + "pausada" vai pro fim (item 5) ── */
+function applyIntensToNav(){
+  const order = ['fullstack','dados','bb'];
+  const btns = order.map(t=>document.querySelector(`.nav-btn[data-tab="${t}"]`)).filter(Boolean);
+  if(!btns.length) return;
+  const nav = btns[0].parentNode;
+  const after = btns[btns.length-1].nextSibling; // nó logo após as trilhas (ex: aba Projetos)
+  btns.sort((a,b)=>
+    INTENS_INFO[trilhaIntens(tabKey(a.dataset.tab))].ord -
+    INTENS_INFO[trilhaIntens(tabKey(b.dataset.tab))].ord);
+  btns.forEach(btn=>{
+    const info = INTENS_INFO[trilhaIntens(tabKey(btn.dataset.tab))];
+    btn.classList.remove('intens-moderada','intens-pausada');
+    btn.querySelector('.intens-badge')?.remove();
+    if(info.cls) btn.classList.add(info.cls);
+    if(info.badge){
+      btn.title = info.badge;
+      btn.insertAdjacentHTML('beforeend', `<span class="intens-badge">${info.badge}</span>`);
+    } else {
+      btn.removeAttribute('title');
+    }
+    nav.insertBefore(btn, after);
+  });
+}
+
+/* ── CAMPO + BANNER DE REAVALIAÇÃO (item 7) ── */
+function renderReaval(){
+  const inp = document.getElementById('reaval-date');
+  const banner = document.getElementById('reaval-banner');
+  if(!inp) return;
+  inp.value = S.proximaReavaliacao || '';
+  inp.onchange = ()=>{ S.proximaReavaliacao = inp.value || null; saveState(); renderReaval(); };
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const alvo = S.proximaReavaliacao ? new Date(S.proximaReavaliacao+'T00:00:00') : null;
+  if(alvo && hoje > alvo){
+    banner.style.display = 'block';
+    banner.innerHTML = `⚠️ A data de reavaliação do plano (${alvo.toLocaleDateString('pt-BR')})
+      já passou. Revise intensidades, tags e prazos — e defina a próxima data no campo ao lado.`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+/* Re-render de tudo que depende de intensidade/tags (seletor de intensidade + init) */
+function rerenderAll(){
+  renderHoje();
+  renderSemana();
+  renderArea(document.getElementById('tab-fullstack'), FS, 'fs');
+  renderArea(document.getElementById('tab-dados'), DE, 'de');
+  renderBB();
+  if (SANKHYA_TRILHA_ATIVA)
+    renderArea(document.getElementById('tab-sankhya'), SK, 'sk', SK_NOTE);
+  applyIntensToNav();
+  renderReaval();
+  refreshProgress();
+}
+
+/* ── RENDER HOJE ── */
+function renderHoje() {
+  const dow = new Date().getDay();
+  const sc = effectiveWeek()[dow];
+  const fsP = progress(allTasks('fs'));
+  const deP = progress(allTasks('de'));
+  const bbP = progress(allTasks('bb'));
+  const skP = progress(allTasks('sk'));
+
+  const OV = [
+    { key:'fs', name:`${IC.code} Fullstack`, col:'#c084fc', grad:'linear-gradient(90deg,#a855f7,#ec4899)', p:fsP },
+    { key:'de', name:`${IC.db} Dados`,       col:'#22d3ee', grad:'linear-gradient(90deg,#06b6d4,#3b82f6)', p:deP },
+    { key:'bb', name:`${IC.bank} BB`,        col:'#fbbf24', grad:'linear-gradient(90deg,#f59e0b,#f97316)', p:bbP },
+  ];
+  if (SANKHYA_TRILHA_ATIVA) OV.push(
+    { key:'sk', name:`${IC.server} Sankhya`, col:'#34d399', grad:'linear-gradient(90deg,#10b981,#f97316)', p:skP });
+
+  const overview = `
+    <div class="overview-grid">
+      ${OV.slice()
+        .sort((a,b)=> INTENS_INFO[trilhaIntens(a.key)].ord - INTENS_INFO[trilhaIntens(b.key)].ord)
+        .map(o=>{
+          const it = INTENS_INFO[trilhaIntens(o.key)];
+          const badge = it.badge ? `<span class="intens-badge">${it.badge}</span>` : '';
+          return `
+          <div class="ov-card ${it.cls}">
+            <div class="ov-name" style="color:${o.col}">${o.name}${badge}</div>
+            <div class="ov-pct" style="color:${o.col}" data-prog-pct="${o.key}">${o.p.pct}%</div>
+            <div class="prog-bar"><div class="prog-fill" data-prog="${o.key}" style="width:${o.p.pct}%;background:${o.grad}"></div></div>
+            <div class="ov-count" data-prog-count="${o.key}">${o.p.done}/${o.p.total} tópicos</div>
+          </div>`;
+        }).join('')}
+    </div>`;
+
+  if(dow === 0) {
+    document.getElementById('tab-hoje').innerHTML = `
+      <div class="rest-card">
+        <div style="color:var(--muted);margin-bottom:16px">${IC.moon}</div>
+        <div class="rest-title">Domingo.</div>
+        <div class="rest-sub">
+          Sem metas. Sem tarefas. Sem culpa.<br><br>
+          Descanso não é preguiça — é parte do plano. Quem não descansa desiste antes.
+          Você estudou durante a semana. Hoje é seu.
+        </div>
+      </div>
+      ${overview}
+      <div class="card" style="border-color:#7777aa33">
+        <div class="sec-title" style="color:var(--muted)">Se quiser fazer algo leve</div>
+        <div class="sec-sub">Isso é opcional. Não força.</div>
+        <ul class="task-list">
+          ${[
+            {id:'sun-1',t:'Rever anotações da semana (10 min)'},
+            {id:'sun-2',t:'Fazer 5 questões de BB sem pressão'},
+            {id:'sun-3',t:'Assistir um vídeo curto sobre algo que teve dificuldade'},
+          ].map(t=>taskHTML(t)).join('')}
+        </ul>
+      </div>`;
+    return;
+  }
+
+  const areaKey = areaKeyOf(sc.area) || 'fs';
+  const pool = allTasks(areaKey).filter(t=>!isDone(t.id)).slice(0,4);
+  const taskItems = pool.length
+    ? pool.map(t=>taskHTML(t)).join('')
+    : `<li style="padding:12px;color:var(--ok);font-weight:600">Todos os tópicos desta área estão marcados. Passe para a próxima fase.</li>`;
+
+  const areaIcon = areaKey==='fs' ? IC.code : areaKey==='de' ? IC.db : IC.bank;
+
+  const isBizDay = dow>=1 && dow<=5;
+  const skPool = allTasks('sk').filter(t=>!isDone(t.id)).slice(0,3);
+  const skCard = isBizDay ? `
+    <div class="card" style="background:#10b98108;border-color:#10b98130">
+      <div class="badge badge-sk">${IC.server} Sankhya — durante o expediente</div>
+      <div class="sec-title" style="margin-top:2px">Meta: 4h esta semana</div>
+      <div class="sec-sub">Não é rotina pessoal — encaixa nos horários livres do trabalho. Independente do foco de hoje acima.</div>
+      <ul class="task-list">${skPool.length ? skPool.map(t=>taskHTML(t)).join('') : '<li style="padding:10px;color:var(--ok);font-weight:600">Trilha Sankhya completa.</li>'}</ul>
+    </div>` : '';
+
+  document.getElementById('tab-hoje').innerHTML = `
+    <div class="focus-card" style="background:${sc.color}12;border:1px solid ${sc.color}38">
+      <div class="focus-label">${sc.day.toUpperCase()} — FOCO DE HOJE</div>
+      <div class="focus-area" style="color:${sc.color}">${areaIcon} ${sc.area}</div>
+      <div class="focus-time">Meta: ${sc.time} de estudo</div>
+      ${sc.redirected ? `<div class="focus-tip">↪ ${sc.redirectedFrom} está pausada — foco do dia redirecionado.</div>` : ''}
+      <div class="focus-tip">${getDayTip(dow)}</div>
+    </div>
+    ${overview}
+    <div class="card">
+      <div class="sec-title">Próximas tarefas</div>
+      <div class="sec-sub">Foco em <strong>${sc.area}</strong>. Marque o que concluir. Não precisa fazer tudo hoje.</div>
+      <ul class="task-list">${taskItems}</ul>
+    </div>
+    ${SANKHYA_TRILHA_ATIVA ? skCard : ''}
+    <div class="card" style="background:#a855f708;border-color:#a855f720">
+      <div class="sec-title" style="display:flex;align-items:center;gap:8px">${IC.timer} Pomodoro</div>
+      <div style="font-size:0.875rem;margin-top:8px;line-height:1.8">
+        <strong>25 min</strong> de estudo — <strong>5 min</strong> de pausa — repita 3 ou 4 vezes — <strong>20 min</strong> de pausa longa.<br>
+        <span style="color:var(--muted)">Isso são ~2h de estudo real. Não precisa de mais que isso por dia.</span>
+      </div>
+    </div>`;
+}
+
+function getDayTip(dow) {
+  return [
+    "",
+    "Começa com código. Abre o editor antes de qualquer outra coisa.",
+    "Dia de questões. Resolve provas reais — não só lê teoria.",
+    "Você chegou até quarta. Só mais um dia de esforço.",
+    "Pratica o que aprendeu na semana. Código na tela.",
+    "Dia de simulado. Cronometre-se. Prova tem tempo limitado.",
+    "Dia de projeto. Nada motiva mais do que ver o código rodando.",
+  ][dow];
+}
+
+/* ── RENDER SEMANA ── */
+function renderSemana() {
+  const today = new Date().getDay();
+  const areaIcon = a => a.includes('Dados')?IC.db : a.includes('Banco')||a==='BB'?IC.bank : a==='Descanso'?IC.moon : IC.code;
+
+  const weekHTML = effectiveWeek().map((d,i)=>`
+    <div class="day-card${i===today?' today':''}${d.redirected?' intens-moderada':''}"${i===today?` style="border-color:${d.color}"`:''}>
+      <div class="day-name">${d.day.slice(0,3).toUpperCase()}</div>
+      <div class="day-area-label" style="color:${d.color}">
+        <span class="day-area-dot" style="background:${d.color}"></span>${d.area}
+      </div>
+      ${d.redirected ? `<div style="font-size:0.58rem;color:#7777aa;margin-bottom:4px">↪ ${d.redirectedFrom} pausada</div>` : ''}
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px">${d.time}</div>
+      <ul class="day-tasks">${d.tasks.map(t=>`<li>${t}</li>`).join('')}</ul>
+    </div>`).join('');
+
+  const TR = [
+    { key:'fs', badge:'badge-fs', ico:IC.code,   label:'Fullstack', h:'~3h por semana',   txt:'Segunda e quinta. Foco em código prático. Commite no GitHub toda semana.' },
+    { key:'de', badge:'badge-de', ico:IC.db,     label:'Dados',     h:'~3,5h por semana', txt:'Quarta e sábado. Python e SQL precisam de prática constante. Escreva código.' },
+    { key:'bb', badge:'badge-bb', ico:IC.bank,   label:'BB',        h:'~3h por semana',   txt:'Terça e sexta. Alterne teoria e questões. Nunca só leia — resolve questões.' },
+  ];
+  if (SANKHYA_TRILHA_ATIVA) TR.push(
+    { key:'sk', badge:'badge-sk', ico:IC.server, label:'Sankhya',   h:'4h por semana — expediente', txt:'Segunda a sexta, nos horários livres do trabalho. Paralelo à rotina acima, não substitui nenhum dia dela.' });
+
+  const trilhaCards = TR.slice()
+    .sort((a,b)=> INTENS_INFO[trilhaIntens(a.key)].ord - INTENS_INFO[trilhaIntens(b.key)].ord)
+    .map(t=>{
+      const it = INTENS_INFO[trilhaIntens(t.key)];
+      const b = it.badge ? `<span class="intens-badge">${it.badge}</span>` : '';
+      return `<div class="card ${it.cls}">
+        <div class="badge ${t.badge}">${t.ico} ${t.label}</div>${b}
+        <div class="sec-title">${t.h}</div>
+        <div style="font-size:0.85rem;color:var(--muted);margin-top:6px">${t.txt}</div>
+      </div>`;
+    }).join('');
+
+  const metas = [
+    {id:'w-fs', t:'Marcar ao menos 3 novos tópicos de Fullstack'},
+    {id:'w-de', t:'Marcar ao menos 3 novos tópicos de Dados'},
+    {id:'w-bb', t:'Resolver ao menos 20 questões de BB'},
+    ...(SANKHYA_TRILHA_ATIVA ? [{id:'w-sk', t:'Completar ao menos 1 semana do Sankhya (SQL/Java)'}] : []),
+    {id:'w-git',t:'Fazer ao menos 1 commit no GitHub'},
+    {id:'w-str',t:'Estudar pelo menos 5 dias esta semana'},
+  ];
+
+  document.getElementById('tab-semana').innerHTML = `
+    <div class="sec-title">Rotina semanal</div>
+    <div class="sec-sub">Cada área recebe atenção toda semana. Hoje está destacado.</div>
+    <div class="week-grid">${weekHTML}</div>
+    <div class="card-grid">${trilhaCards}</div>
+    <div class="card" style="margin-top:4px">
+      <div class="sec-title">Metas da semana</div>
+      <div class="sec-sub">Indicadores de consistência. Marque o que conseguir.</div>
+      <ul class="task-list">
+        ${metas.map(t=>taskHTML(t)).join('')}
+      </ul>
+    </div>`;
+}
+
+/* ── RENDER AREA ── */
+function renderArea(el, data, key, note) {
+  const tot = progress(data.phases.flatMap(p=>p.tasks));
+  const ico = key==='fs' ? IC.code : key==='sk' ? IC.server : IC.db;
+  const ph = data.phases.map(ph=>{
+    const p = progress(ph.tasks);
+    return `
+      <div class="phase-wrap">
+        <div class="phase-head" style="background:${ph.color}12;border:1px solid ${ph.color}38" onclick="togglePhase('${ph.id}')">
+          <div>
+            <div class="phase-title-text" style="color:${ph.color}">${ph.name}</div>
+            <div class="phase-meta">${ph.weeks}</div>
+          </div>
+          <div class="phase-meta" style="flex-direction:column;align-items:flex-end;gap:5px">
+            <span data-prog-lbl="${ph.id}">${p.pct}% (${p.done}/${p.total})</span>
+            <div class="prog-bar" style="width:88px"><div class="prog-fill" data-prog="${ph.id}" style="width:${p.pct}%;background:${ph.color}"></div></div>
+          </div>
+        </div>
+        <div class="phase-body" id="phase-${ph.id}">
+          <ul class="task-list">${ph.tasks.map(t=>taskHTML(t)).join('')}</ul>
+        </div>
+      </div>`;
+  }).join('');
+
+  const it = INTENS_INFO[trilhaIntens(key)];
+  const intensBadge = it.badge ? `<span class="intens-badge">${it.badge}</span>` : '';
+  const intensSelect = `
+    <select class="intens-select" style="margin-left:auto" onchange="setTrilhaIntens('${key}', this.value)">
+      ${['alta','moderada','pausada'].map(v=>
+        `<option value="${v}" ${trilhaIntens(key)===v?'selected':''}>Intensidade: ${v}</option>`).join('')}
+    </select>`;
+
+  el.innerHTML = `
+    <div class="${it.cls}">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="badge badge-${key}" style="margin:0">${ico} ${data.label}</span>
+      ${intensBadge}
+      ${intensSelect}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px">
+      <div class="sec-title">Progresso total</div>
+      <span style="font-size:1.1rem;font-weight:800;color:${data.color}">${tot.pct}%</span>
+    </div>
+    <div class="prog-bar" style="height:9px;margin-bottom:22px">
+      <div class="prog-fill" data-prog="${key}" style="width:${tot.pct}%;background:${data.grad}"></div>
+    </div>
+    ${note ? `<div class="highlight-card" style="border-color:${data.color};margin-bottom:18px">${note}</div>` : ''}
+    ${sankhyaHint(key)}
+    ${ph}
+    </div>`;
+}
+
+/* ── RENDER BB ── */
+function renderBB() {
+  const tot = progress(allTasks('bb'));
+  const groups = BB.groups.map(g=>{
+    const p = progress(g.tasks);
+    const c = g.high ? '#f59e0b' : '#fb923c';
+    return `
+      <div class="phase-wrap">
+        <div class="phase-head" style="background:${c}12;border:1px solid ${c}38" onclick="togglePhase('${g.id}')">
+          <div><div class="phase-title-text" style="color:${c}">${g.name}</div></div>
+          <div class="phase-meta" style="flex-direction:column;align-items:flex-end;gap:5px">
+            <span data-prog-lbl="${g.id}">${p.pct}% (${p.done}/${p.total})</span>
+            <div class="prog-bar" style="width:80px"><div class="prog-fill" data-prog="${g.id}" style="width:${p.pct}%;background:${c}"></div></div>
+          </div>
+        </div>
+        <div class="phase-body" id="phase-${g.id}">
+          <ul class="task-list">${g.tasks.map(t=>taskHTML(t)).join('')}</ul>
+        </div>
+      </div>`;
+  }).join('');
+
+  const bbIt = INTENS_INFO[trilhaIntens('bb')];
+
+  document.getElementById('tab-bb').innerHTML = `
+    <div class="${bbIt.cls}">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="badge badge-bb" style="margin:0">${IC.bank} ${BB.label}</span>
+      ${bbIt.badge ? `<span class="intens-badge">${bbIt.badge}</span>` : ''}
+      <select class="intens-select" style="margin-left:auto" onchange="setTrilhaIntens('bb', this.value)">
+        ${['alta','moderada','pausada'].map(v=>`<option value="${v}" ${trilhaIntens('bb')===v?'selected':''}>Intensidade: ${v}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px">
+      <div class="sec-title">Progresso total</div>
+      <span style="font-size:1.1rem;font-weight:800;color:#fbbf24">${tot.pct}%</span>
+    </div>
+    <div class="prog-bar" style="height:9px;margin-bottom:10px">
+      <div class="prog-fill" data-prog="bb" style="width:${tot.pct}%;background:linear-gradient(90deg,#f59e0b,#f97316)"></div>
+    </div>
+    <div class="sec-sub">Matérias marcadas como "alto peso" são as mais cobradas no cargo de Agente de Tecnologia.</div>
+    <div class="highlight-card" style="border-color:#f59e0b;margin-bottom:18px">
+      <strong style="color:#fbbf24">Estratégia:</strong> TI tem peso alto — BD, Redes, Segurança, Cloud, Dev. Estude essas com prioridade.
+      Português e Matemática são eliminatórios. Resolva muitas questões de provas anteriores do BB.
+    </div>
+    ${groups}
+    </div>`;
+}
+
+/* ── RENDER PROJETOS ── */
+function renderProjetos() {
+  const areaLabels = {fs:'Projetos Fullstack', de:'Projetos Engenharia de Dados', bb:'Projetos Banco do Brasil'};
+  const areaIcons = {fs:IC.code, de:IC.db, bb:IC.bank};
+  const areaBadge = {fs:'badge-fs', de:'badge-de', bb:'badge-bb'};
+  let html = '';
+  ['fs','de','bb'].forEach(area=>{
+    const cards = PROJECTS.filter(p=>p.area===area).map(p=>{
+      const st = projStatus(p.id);
+      const m = {
+        pending: [IC.clock+' Pendente','s-pending'],
+        progress:[IC.play+' Em andamento','s-progress'],
+        done:    [IC.done+' Concluído','s-done'],
+      };
+      const [lbl,cls] = m[st];
+      return `<div class="proj-card">
+        <div class="proj-level">${p.level}</div>
+        <div class="proj-title">${p.title}</div>
+        <div class="proj-desc">${p.desc}</div>
+        <div class="proj-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <button class="status-btn ${cls}" onclick="cycleProject('${p.id}',this)">${lbl}</button>
+      </div>`;
+    }).join('');
+    html += `<div class="divider-title"><span class="badge ${areaBadge[area]}" style="margin:0">${areaIcons[area]} ${areaLabels[area]}</span></div><div class="card-grid">${cards}</div>`;
+  });
+  document.getElementById('tab-projetos').innerHTML = `
+    <div class="sec-title">Projetos práticos</div>
+    <div class="sec-sub">Clique no status para avançar. Projetos concluídos vão para o portfolio.</div>
+    ${html}`;
+}
+
+/* ── RENDER MOTIVACAO ── */
+function renderMotivacao() {
+  const nextFS = allTasks('fs').find(t=>!isDone(t.id));
+  const nextDE = allTasks('de').find(t=>!isDone(t.id));
+  const nextBB = allTasks('bb').find(t=>!isDone(t.id));
+
+  document.getElementById('tab-motivacao').innerHTML = `
+    <div class="sec-title">Anti-Desistência</div>
+    <div class="sec-sub">Para os dias difíceis. Para quando bater aquela vontade de largar tudo.</div>
+
+    <button class="emer-btn" onclick="document.getElementById('emer').classList.toggle('visible')">
+      ${IC.alert} Modo Emergência — não quero estudar nada hoje
+    </button>
+    <div class="emer-panel" id="emer">
+      <div class="card" style="border-color:#ef444440;margin-bottom:18px">
+        <div class="sec-title" style="color:#f87171">Modo emergência ativado</div>
+        <div class="sec-sub">Regra: faça APENAS 1 tarefa de cada área. Só isso. Depois pode parar.</div>
+        <ul class="task-list">
+          ${nextFS ? taskHTML({...nextFS,t:'[Fullstack] '+nextFS.t}) : '<li style="padding:10px;color:var(--ok)">Fullstack completo.</li>'}
+          ${nextDE ? taskHTML({...nextDE,t:'[Dados] '+nextDE.t}) : '<li style="padding:10px;color:var(--ok)">Dados completo.</li>'}
+          ${nextBB ? taskHTML({...nextBB,t:'[BB] '+nextBB.t}) : '<li style="padding:10px;color:var(--ok)">BB completo.</li>'}
+        </ul>
+        <div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:8px;font-size:0.85rem;color:var(--muted)">
+          Se fizer essas 3 tarefas, você fez mais do que a maioria das pessoas que "quer estudar".
+        </div>
+      </div>
+    </div>
+
+    <div class="pomo-card">
+      <div class="pomo-title">${IC.timer} Técnica Pomodoro</div>
+      <div class="pomo-row"><span class="pomo-dot"></span><span><strong>25 min</strong> de estudo — celular no silencioso, sem redes sociais</span></div>
+      <div class="pomo-row"><span class="pomo-dot rest"></span><span><strong>5 min</strong> de pausa — levanta, bebe água, sai da tela</span></div>
+      <div class="pomo-row"><span class="pomo-dot"></span><span>Repita <strong>3 ou 4 vezes</strong></span></div>
+      <div class="pomo-row"><span class="pomo-dot rest"></span><span><strong>20–30 min</strong> de pausa longa</span></div>
+      <div style="margin-top:10px;font-size:0.8rem;color:var(--muted)">São ~2h de estudo real. Não precisa de mais que isso por dia.</div>
+    </div>
+
+    <div class="divider-title">Regras anti-pânico</div>
+    ${[
+      [IC.phone,   'Primeiro Pomodoro sempre sem celular. Sem exceção. Coloca o celular em outro cômodo.'],
+      [IC.target,  'Um tópico por vez. Não abre dez abas. Escolhe uma coisa e fecha o resto.'],
+      [IC.repeat,  'Perdeu um dia? Sem drama. Amanhã você continua. Não tenta compensar em dobro.'],
+      [IC.skip,    'Travou num tópico difícil? Pula para o próximo. Volta depois. Progresso importa mais que ordem.'],
+      [IC.star,    'Sem motivação? Abre o site, escolhe 1 tarefa, marca. Só isso. Pode parar depois.'],
+    ].map(([i,t])=>`<div class="rule-item"><span class="rule-icon" style="color:var(--muted)">${i}</span><span>${t}</span></div>`).join('')}
+
+    <div class="divider-title">Quando você estiver assim</div>
+    <div class="card">
+      <div>
+        ${[
+          ['#a855f7','Sem energia',   'Modo Emergência acima. 1 tarefa por área. Fim.'],
+          ['#06b6d4','Entediada',     'Mude a área. Estava no Fullstack? Vai pro BB. Variedade vence abandono.'],
+          ['#f59e0b','Distraída',     'Troca de ambiente. Outro cômodo, fone, fecha tudo.'],
+          ['#ef4444','Travada',       'Deixa para amanhã e vai para o próximo tópico. Não fica parada num muro.'],
+          ['#7777aa','Achando inútil','Abre a aba Projetos. Veja o que vai conseguir construir. O porquê salva o como.'],
+        ].map(([c,s,d])=>`<div class="situation-row">
+          <span class="situation-dot" style="background:${c}"></span>
+          <span><strong>${s}:</strong> ${d}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="divider-title">Por que você começou?</div>
+    <div class="card" style="background:#a855f708;border-color:#a855f725">
+      <div style="font-size:0.95rem;line-height:2">
+        Você quer <strong>ganhar autonomia técnica de verdade</strong>.<br>
+        Você quer entrar no <strong>Banco do Brasil</strong> com mérito.<br>
+        Você quer construir projetos reais sem depender de ajuda para codar.
+        <div style="margin-top:14px;font-size:0.875rem;color:var(--muted)">
+          O cansaço passa. O tédio passa. O arrependimento de não ter estudado dura muito mais.
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── TABS ── */
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelector(`[data-tab="${id}"]`).classList.add('active');
+}
+
+/* ── INIT ── */
+function init() {
+  loadState();
+
+  const now = new Date();
+  document.getElementById('date-el').textContent =
+    now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('quote-el').textContent =
+    QUOTES[Math.floor(Date.now()/86400000) % QUOTES.length];
+
+  renderStreak();
+  rerenderAll();          // renderHoje + renderSemana + trilhas + nav + reavaliação
+  renderProjetos();
+  renderMotivacao();
+
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
+  });
+}
+
+init();
+
+</script>
+</body>
+</html>
