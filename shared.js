@@ -280,7 +280,8 @@ function orionSetButtonFeedback(button) {
 function orionMountBackupBar() {
   const style = document.createElement('style');
   style.textContent = `
-    #orion-backup-bar{position:fixed;left:14px;bottom:14px;z-index:9997;display:flex;gap:6px}
+    #orion-backup-bar{position:fixed;top:14px;right:14px;z-index:9997;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:calc(100vw - 28px)}
+    #orion-backup-bar.orion-header-bar{display:contents}
     #orion-backup-bar button,#orion-backup-reminder button{
       font:600 .72rem 'Segoe UI',system-ui,sans-serif;
       background:var(--surface,#13132b);color:var(--muted,#7777aa);
@@ -294,7 +295,7 @@ function orionMountBackupBar() {
     #orion-backup-reminder-actions{display:flex;gap:6px;flex-shrink:0}
     #orion-backup-reminder .orion-reminder-backup{color:var(--text,#e2e2f0);border-color:var(--muted,#7777aa)}
     #orion-backup-reminder .orion-reminder-dismiss{padding-inline:8px}
-    @media(max-width:680px){#orion-backup-bar{left:8px;bottom:8px}#orion-backup-reminder{right:8px;bottom:52px;left:8px;max-width:none;align-items:flex-start;flex-wrap:wrap}#orion-backup-reminder-actions{margin-left:auto}}
+    @media(max-width:680px){#orion-backup-bar{top:8px;right:8px;left:8px;max-width:none}#orion-backup-reminder{right:8px;bottom:52px;left:8px;max-width:none;align-items:flex-start;flex-wrap:wrap}#orion-backup-reminder-actions{margin-left:auto}}
   `;
   document.head.appendChild(style);
 
@@ -307,7 +308,13 @@ function orionMountBackupBar() {
     '<button type="button" id="orion-gdrive-backup" title="Salvar um backup diretamente no Google Drive">☁ Salvar no Drive</button>' +
     '<span id="orion-gdrive-status" aria-live="polite"></span>' +
     '<input type="file" id="orion-imp-file" accept="application/json,.json" hidden>';
-  document.body.appendChild(bar);
+  const headerRight = document.querySelector('.header .header-right, .main-header .header-right');
+  if (headerRight) {
+    bar.classList.add('orion-header-bar');
+    headerRight.appendChild(bar);
+  } else {
+    document.body.appendChild(bar);
+  }
 
   const themeButton = document.getElementById('orion-theme');
   const syncThemeButton = () => {
