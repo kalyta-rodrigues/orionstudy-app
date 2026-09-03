@@ -139,7 +139,14 @@ async function orionDriveRequest(url, options = {}) {
     ...options,
     headers: { Authorization: `Bearer ${orionGoogleAccessToken}`, ...(options.headers || {}) }
   });
-  if (!response.ok) throw new Error(`Google Drive HTTP ${response.status}`);
+  if (!response.ok) {
+    let detail = '';
+    try {
+      const payload = await response.json();
+      detail = payload.error?.message || '';
+    } catch (e) {}
+    throw new Error(`Google Drive HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+  }
   return response.status === 204 ? null : response.json();
 }
 
@@ -221,7 +228,7 @@ async function orionManualGoogleBackup() {
   } catch (error) {
     orionGoogleAccessToken = null;
     console.warn('[OrionStudy] backup manual no Google Drive falhou:', error);
-    alert('Não foi possível salvar o backup no Google Drive agora.');
+    alert(`Não foi possível salvar o backup no Google Drive agora.\n\n${error.message}`);
   } finally {
     if (button) button.disabled = false;
   }
