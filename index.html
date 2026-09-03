@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OrionStudy</title>
+  <style>
+    :root { color-scheme: dark; --bg: #0d0d1a; --surface: #13132b; --border: #2a2a55; --text: #e2e2f0; --muted: #aaaac8; --accent: #06b6d4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg); color: var(--text); font: 16px/1.5 'Segoe UI', system-ui, sans-serif; }
+    main { width: min(100%, 680px); }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 7vw, 3.5rem); }
+    nav { display: grid; gap: 12px; }
+    a { display: block; padding: 16px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); text-decoration: none; }
+    a:hover, a:focus-visible { border-color: var(--accent); outline: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>OrionStudy</h1>
+    <nav aria-label="Áreas do OrionStudy">
+      <a href="plano-estudos.html">Plano de estudos</a>
+      <a href="cronograma.html">Cronograma</a>
+      <a href="biblioteca.html">Biblioteca</a>
+    </nav>
+  </main>
+</body>
+</html>
