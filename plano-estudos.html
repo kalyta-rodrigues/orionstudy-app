@@ -16,6 +16,7 @@
   --fs: #a855f7;
   --de: #06b6d4;
   --bb: #f59e0b;
+  --pt: #14b8a6;
   --ok: #10b981;
   --radius: 12px;
 }
@@ -84,6 +85,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .badge-fs { background: #a855f71a; color: #c084fc; border: 1px solid #a855f740; }
 .badge-de { background: #06b6d41a; color: #22d3ee; border: 1px solid #06b6d440; }
 .badge-bb { background: #f59e0b1a; color: #fbbf24; border: 1px solid #f59e0b40; }
+.badge-pt { background: #14b8a61a; color: #2dd4bf; border: 1px solid #14b8a640; }
 .badge-sk { background: #10b9811a; color: #34d399; border: 1px solid #10b98140; }
 
 .task-list { list-style: none; }
@@ -235,6 +237,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 :root[data-theme="light"] .badge-fs { color: #6d28d9; }
 :root[data-theme="light"] .badge-de { color: #0e7490; }
 :root[data-theme="light"] .badge-bb { color: #b45309; }
+:root[data-theme="light"] .badge-pt { color: #0f766e; }
 :root[data-theme="light"] .badge-sk { color: #047857; }
 :root[data-theme="light"] .nav-btn.active,
 :root[data-theme="light"] .nav-btn.active svg { color: #7c3aed; border-bottom-color: #7c3aed; }
@@ -321,6 +324,10 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="22"/><line x1="10" x2="10" y1="18" y2="22"/><line x1="14" x2="14" y1="18" y2="22"/><line x1="18" x2="18" y1="18" y2="22"/><polygon points="12 2 20 7 4 7"/></svg>
     BB
   </button>
+  <button class="nav-btn" data-tab="transpetro">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+    Transpetro
+  </button>
   <!-- SANKHYA COMO TRILHA — desativado até a universidade Sankhya liberar os cursos oficiais da DIO (SQL + Java).
        Para reativar: descomente este botão + o <div id="tab-sankhya"> em <main> + troque SANKHYA_TRILHA_ATIVA para true.
   <button class="nav-btn" data-tab="sankhya">
@@ -360,6 +367,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
   <div id="tab-fullstack" class="tab-panel"></div>
   <div id="tab-dados" class="tab-panel"></div>
   <div id="tab-bb" class="tab-panel"></div>
+  <div id="tab-transpetro" class="tab-panel"></div>
   <!-- <div id="tab-sankhya" class="tab-panel"></div> -->
   <div id="tab-projetos" class="tab-panel"></div>
   <div id="tab-motivacao" class="tab-panel"></div>
@@ -384,6 +392,7 @@ const IC = {
   repeat:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
   star: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
   server:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="6" rx="1"/><rect x="2" y="15" width="20" height="6" rx="1"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>`,
+  globe:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>`,
 };
 
 /* ── QUOTES ── */
@@ -600,6 +609,556 @@ const BB = { label:"Banco do Brasil", color:"#f59e0b", grad:"linear-gradient(135
   ]},
 ]};
 
+/* ── TRANSPETRO DATA ── */
+/* Fonte: cronograma real do curso no Gran Cursos Online (extraído via gran_extrator.js, set/out/nov de 2026). */
+/* Cargo: Profissional Transpetro de Nível Superior — Ênfase 5: Análise de Sistemas - Processos de Negócios (Pós-Edital). */
+const PT = { label:"Transpetro", color:"#14b8a6", grad:"linear-gradient(135deg,#14b8a6,#0ea5e9)", groups:[
+  { id:"pt1", name:"Língua Portuguesa", tasks:[
+    {id:"pt1-01",t:"Aula 1 — Aula de Apresentação - Língua Portuguesa"},
+    {id:"pt1-02",t:"Aula 1 — Resolução de Prova - Cesgranrio - CEF 2026"},
+    {id:"pt1-03",t:"Aula 2 — Classes de Palavras"},
+    {id:"pt1-04",t:"Aula 2 — Resolução de Prova - Cesgranrio - CEF 2026 II"},
+    {id:"pt1-05",t:"Aula 3 — Classes de Palavras II"},
+    {id:"pt1-06",t:"Aula 3 — Resolução de Prova - Cesgranrio - BNDS - Analista - 2024"},
+    {id:"pt1-07",t:"Aula 4 — Morfossintaxe"},
+    {id:"pt1-08",t:"Aula 4 — Resolução de Prova - Cesgranrio - BNDS - Analista - 2024 II"},
+    {id:"pt1-09",t:"Aula 5 — Regência"},
+    {id:"pt1-10",t:"Aula 5 — Resolução de Prova - Cesgranrio - Banese/técnico Bancário/2025"},
+    {id:"pt1-11",t:"Aula 6 — Cesgranrio na Prática - Regência"},
+    {id:"pt1-12",t:"Aula 6 — Resolução de Prova - Cesgranrio - Banese/técnico Bancário/2025 II"},
+    {id:"pt1-13",t:"Aula 7 — Cesgranrio na Prática - Crase"},
+    {id:"pt1-14",t:"Aula 8 — Cesgranrio na Prática - Crase"},
+    {id:"pt1-15",t:"Aula 9 — Cesgranrio na Prática - Crase e Período Composto"},
+    {id:"pt1-16",t:"Aula 10 — Cesgranrio na Prática - Pronome Relativo \"QUE\""},
+    {id:"pt1-17",t:"Aula 11 — Cesgranrio na Prática - Orações Subordinadas (Pronomes Relativos)"},
+    {id:"pt1-18",t:"Aula 12 — Cesgranrio na Prática - Orações Subordinadas (Pronomes Relativos) II"},
+    {id:"pt1-19",t:"Aula 13 — Cesgranrio na Prática - Pronome Relativo e Conjunções Subordinativas"},
+    {id:"pt1-20",t:"Aula 14 — Cesgranrio na Prática - Conjunções Subordinativas/Coordenativas"},
+    {id:"pt1-21",t:"Aula 15 — Cesgranrio na Prática - Conjunções Subordinativas/Coordenativas II"},
+    {id:"pt1-22",t:"Aula 16 — Cesgranrio na Prática - Conjunções Subordinativas e Coordenativas/Colocação Pronominal"},
+    {id:"pt1-23",t:"Aula 17 — Cesgranrio na Prática - Colocação Pronominal"},
+    {id:"pt1-24",t:"Aula 18 — Cesgranrio na Prática - Vozes Verbais"},
+    {id:"pt1-25",t:"Aula 19 — Cesgranrio na Prática - Concordância"},
+    {id:"pt1-26",t:"Aula 20 — Cesgranrio na Prática - Concordância II"},
+    {id:"pt1-27",t:"Aula 21 — Cesgranrio na Prática - Interpretação de Texto (Exercícios)"},
+    {id:"pt1-28",t:"Aula 22 — Cesgranrio na Prática - Interpretação de Texto (Exercícios)"},
+    {id:"pt1-29",t:"Aula 23 — Cesgranrio na Prática - Interpretação de Texto - Exercícios"},
+  ]},
+  { id:"pt2", name:"Língua Inglesa", tasks:[
+    {id:"pt2-01",t:"Aula 1 — Atualidade - Andragogia"},
+    {id:"pt2-02",t:"Aula 1 — Língua Inglesa - Alma e Perfil da Prova de Inglês"},
+    {id:"pt2-03",t:"Aula 2 — Atualidade - Interlanguage"},
+    {id:"pt2-04",t:"Aula 2 — Língua Inglesa - Como Estudar Inglês e Resolver a Prova"},
+    {id:"pt2-05",t:"Aula 3 — Atualidade - Learning a Second Language"},
+    {id:"pt2-06",t:"Aula 3 — Língua Inglesa - Inglês não é de trás para frente"},
+    {id:"pt2-07",t:"Aula 4 — Atualidade - Offshore Englishi"},
+    {id:"pt2-08",t:"Aula 4 — Língua Inglesa - Conceito de Lista de Verbos"},
+    {id:"pt2-09",t:"Aula 5 — Atualidade - The Microchip Revolution"},
+    {id:"pt2-10",t:"Aula 5 — Língua Inglesa - O Famoso Verbo To Be"},
+    {id:"pt2-11",t:"Aula 6 — Atualidade - Translation Pros And Cons"},
+    {id:"pt2-12",t:"Aula 6 — Língua Inglesa - Comparativos e Superlativos de Igualdade e Inferioridade"},
+    {id:"pt2-13",t:"Aula 7 — Atualidade - Windows XP"},
+    {id:"pt2-14",t:"Aula 7 — Língua Inglesa - Comparativos e Superlativos de Superioridade"},
+    {id:"pt2-15",t:"Aula 8 — A Coup In Paraguay"},
+    {id:"pt2-16",t:"Aula 8 — Língua Inglesa - Advérbios"},
+    {id:"pt2-17",t:"Aula 9 — Augmentation Of Brain Function Facts"},
+    {id:"pt2-18",t:"Aula 9 — Língua Inglesa - Preposições IN, AT e ON"},
+    {id:"pt2-19",t:"Aula 10 — Brazilian Rate Cut Catches Markets Off Guard"},
+    {id:"pt2-20",t:"Aula 10 — Língua Inglesa - Conjunções And, But, So, Or, Because"},
+    {id:"pt2-21",t:"Aula 11 — Brazilian Rate Cut Catches Markets Off Guard II"},
+    {id:"pt2-22",t:"Aula 11 — Língua Inglesa - Subject and Object Pronouns"},
+    {id:"pt2-23",t:"Aula 12 — Conversations And Focus On Sustainability - Part A"},
+    {id:"pt2-24",t:"Aula 12 — Língua Inglesa - Pronomes Possessivos e Adjetivos"},
+    {id:"pt2-25",t:"Aula 13 — Conversations And Focus On Sustainability - Part B"},
+    {id:"pt2-26",t:"Aula 13 — Língua Inglesa - Genitive Case"},
+    {id:"pt2-27",t:"Aula 14 — Cyber - Cafés"},
+    {id:"pt2-28",t:"Aula 14 — Língua Inglesa - Quantifiers"},
+    {id:"pt2-29",t:"Aula 15 — Cyber - Ethics"},
+    {id:"pt2-30",t:"Aula 15 — Língua Inglesa - Sinonímia"},
+    {id:"pt2-31",t:"Aula 16 — Despite Being The Eighth Largest Economy"},
+    {id:"pt2-32",t:"Aula 16 — Língua Inglesa - O Segredo do Pronome IT"},
+    {id:"pt2-33",t:"Aula 17 — Despite Technology Advancements"},
+    {id:"pt2-34",t:"Aula 17 — Língua Inglesa - Simple Present"},
+    {id:"pt2-35",t:"Aula 18 — Election Fears Harm Brazilian Economy"},
+    {id:"pt2-36",t:"Aula 18 — Língua Inglesa - Simple Present - Modern Sentences"},
+    {id:"pt2-37",t:"Aula 19 — Eu Law Taxes Overseas Net Firms"},
+    {id:"pt2-38",t:"Aula 19 — Língua Inglesa - Simple Future and Going To Future"},
+    {id:"pt2-39",t:"Aula 20 — Food Control Systems"},
+    {id:"pt2-40",t:"Aula 20 — Língua Inglesa - Simple Past"},
+    {id:"pt2-41",t:"Aula 21 — German Counter - intelligence"},
+    {id:"pt2-42",t:"Aula 21 — Língua Inglesa - Verbos Auxiliares - Perguntas"},
+    {id:"pt2-43",t:"Aula 22 — Have You Been Greenwashed"},
+    {id:"pt2-44",t:"Aula 22 — Língua Inglesa - Verbos Auxiliares - Negativas"},
+    {id:"pt2-45",t:"Aula 23 — Law Has Always Worked With Technology"},
+    {id:"pt2-46",t:"Aula 23 — Língua Inglesa - Continuous Tenses"},
+    {id:"pt2-47",t:"Aula 24 — Metro Releases Preliminary Findings"},
+    {id:"pt2-48",t:"Aula 24 — ING"},
+    {id:"pt2-49",t:"Aula 25 — Virtues Of Vice"},
+    {id:"pt2-50",t:"Aula 25 — ING II"},
+    {id:"pt2-51",t:"Aula 26 — Fed’s Jefferson..."},
+    {id:"pt2-52",t:"Aula 26 — Forma Verbal Enfática"},
+    {id:"pt2-53",t:"Aula 27 — Fed’s Jefferson... II"},
+    {id:"pt2-54",t:"Aula 27 — Pronomes Reflexivos"},
+    {id:"pt2-55",t:"Aula 28 — Hagar - The Horrible"},
+    {id:"pt2-56",t:"Aula 28 — If Sentences"},
+    {id:"pt2-57",t:"Aula 29 — Half The Nation"},
+    {id:"pt2-58",t:"Aula 29 — If Sentences II"},
+    {id:"pt2-59",t:"Aula 30 — Managing Government"},
+    {id:"pt2-60",t:"Aula 30 — Can, Could, Able"},
+    {id:"pt2-61",t:"Aula 31 — Multiliteracies"},
+    {id:"pt2-62",t:"Aula 31 — May - Might"},
+    {id:"pt2-63",t:"Aula 32 — Of Course They’re Fake Videos"},
+    {id:"pt2-64",t:"Aula 32 — Should - Ought to"},
+    {id:"pt2-65",t:"Aula 33 — Politics Of The Police"},
+    {id:"pt2-66",t:"Aula 33 — Must - Must Not"},
+    {id:"pt2-67",t:"Aula 34 — Private Zero"},
+    {id:"pt2-68",t:"Aula 34 — Ilusão de Óptica"},
+    {id:"pt2-69",t:"Aula 35 — Puno District"},
+    {id:"pt2-70",t:"Aula 35 — Present Perfect"},
+    {id:"pt2-71",t:"Aula 36 — For The First Time..."},
+    {id:"pt2-72",t:"Aula 36 — Present Perfect Continuous"},
+    {id:"pt2-73",t:"Aula 37 — Over The Past Three Decades"},
+    {id:"pt2-74",t:"Aula 37 — Pronomes Relativos"},
+    {id:"pt2-75",t:"Aula 38 — Real Medicine"},
+    {id:"pt2-76",t:"Aula 38 — Pronomes Relativos II"},
+    {id:"pt2-77",t:"Aula 39 — Tackling Corruption For Growth"},
+    {id:"pt2-78",t:"Aula 39 — Question Tag"},
+    {id:"pt2-79",t:"Aula 40 — The Tech Product Network"},
+    {id:"pt2-80",t:"Aula 40 — Past Perfect - Continuous"},
+    {id:"pt2-81",t:"Aula 41 — The Use Of Music And Songs In The Efl Classroom"},
+    {id:"pt2-82",t:"Aula 41 — Discurso Direto X Indireto"},
+    {id:"pt2-83",t:"Aula 42 — The Use Of Music And Songs In The Efl Classroom II"},
+    {id:"pt2-84",t:"Aula 42 — Voz Passiva (Obj. Direto)"},
+    {id:"pt2-85",t:"Aula 43 — Trust And Audit"},
+    {id:"pt2-86",t:"Aula 43 — Voz Passiva (Obj. Indireto)"},
+    {id:"pt2-87",t:"Aula 44 — Virtues Of Vice – The Rewards From Investing In Politically Incorrect Companies"},
+    {id:"pt2-88",t:"Aula 44 — Voz Passiva - Exercícios"},
+    {id:"pt2-89",t:"Aula 45 — Wallerstein"},
+    {id:"pt2-90",t:"Aula 45 — Marcadores de Discurso"},
+    {id:"pt2-91",t:"Aula 46 — We’re So Well Educated"},
+    {id:"pt2-92",t:"Aula 46 — Recurring Words and Expressions"},
+    {id:"pt2-93",t:"Aula 47 — With The Exception Of Business Owners"},
+    {id:"pt2-94",t:"Aula 47 — Conjunções"},
+    {id:"pt2-95",t:"Aula 48 — Geopolitical Tensions And Resource Nationalism"},
+    {id:"pt2-96",t:"Aula 48 — Determiners"},
+    {id:"pt2-97",t:"Aula 49 — Niobium"},
+    {id:"pt2-98",t:"Aula 49 — Direct and Indirect Speech"},
+    {id:"pt2-99",t:"Aula 50 — Rare Earths"},
+    {id:"pt2-100",t:"Aula 50 — Orações coordenadas"},
+    {id:"pt2-101",t:"Aula 51 — Transition To Renewable Energy"},
+    {id:"pt2-102",t:"Aula 51 — Orações subordinadas: nominais, relativas e adverbiais (de tempo, lugar, maneira, condição, resultado, explicação, propósito, contraste)"},
+    {id:"pt2-103",t:"Aula 52 — Orações subordinadas: nominais, relativas e adverbiais (de tempo, lugar, maneira, condição, resultado, explicação, propósito, contraste) II"},
+    {id:"pt2-104",t:"Aula 53 — Zero Article"},
+    {id:"pt2-105",t:"Aula 54 — Future continuous, Future perfect simple, Future perfect continuous; Past perfect continuous."},
+  ]},
+  { id:"pt3", name:"Lógica Matemática", tasks:[
+    {id:"pt3-01",t:"Aula 1 — Lógica Proposicional Proposições, Tabela - Verdade"},
+    {id:"pt3-02",t:"Aula 2 — Lógica Proposicional Proposições, Tabela - Verdade - Parte II"},
+    {id:"pt3-03",t:"Aula 3 — Lógica Proposicional Conectivos Lógicos - Parte I"},
+    {id:"pt3-04",t:"Aula 4 — Lógica Proposicional Conectivos Lógicos - Parte II"},
+    {id:"pt3-05",t:"Aula 5 — Lógica Proposicional Conectivos Lógicos - Parte III"},
+    {id:"pt3-06",t:"Aula 6 — Lógica Proposicional Conectivos Lógicos - Parte IV"},
+    {id:"pt3-07",t:"Aula 7 — Lógica Proposicional Conectivos Lógicos - Parte V"},
+    {id:"pt3-08",t:"Aula 8 — Lógica Proposicional Conectivos Lógicos - Parte VI"},
+    {id:"pt3-09",t:"Aula 9 — Lógica Proposicional - Negação dos Conectivos"},
+    {id:"pt3-10",t:"Aula 10 — Lógica Proposicional - Negação dos Conectivos II"},
+    {id:"pt3-11",t:"Aula 11 — Lógica Proposicional - Equivalências Lógicas"},
+    {id:"pt3-12",t:"Aula 12 — Lógica Proposicional - Equivalências Lógicas II"},
+    {id:"pt3-13",t:"Aula 13 — Lógica Proposicional - Equivalências Lógicas III"},
+    {id:"pt3-14",t:"Aula 14 — Lógica Proposicional - Classificação da Tabela Verdade"},
+    {id:"pt3-15",t:"Aula 15 — Diagramas Lógicos - Quantificadores"},
+    {id:"pt3-16",t:"Aula 16 — Lógica Proposicional Diagramas Lógicos - Quantificadores II"},
+    {id:"pt3-17",t:"Aula 17 — Lógica Proposicional - Negação dos Quantificadores"},
+    {id:"pt3-18",t:"Aula 18 — Lógica Proposicional - Argumentos"},
+    {id:"pt3-19",t:"Aula 19 — Lógica Proposicional - Argumentos II"},
+    {id:"pt3-20",t:"Aula 20 — Lógica Proposicional - Argumentos III"},
+    {id:"pt3-21",t:"Aula 21 — Lógica Proposicional - Argumentos IV"},
+    {id:"pt3-22",t:"Aula 22 — Lógica Proposicional Simulado"},
+    {id:"pt3-23",t:"Aula 23 — Lógica Proposicional Simulado II"},
+    {id:"pt3-24",t:"Aula 24 — Lógica Proposicional - Simulado III"},
+    {id:"pt3-25",t:"Aula 25 — Lógica proposicional - Simulado IV"},
+    {id:"pt3-26",t:"Aula 26 — Lógica Sequencial - Principais Macetes"},
+    {id:"pt3-27",t:"Aula 27 — Lógica Sequencial - Principais Macetes II"},
+    {id:"pt3-28",t:"Aula 28 — Lógica Sequencial - Principais Macetes III"},
+    {id:"pt3-29",t:"Aula 29 — Lógica Sequencial - Sequências Envolvendo Números"},
+    {id:"pt3-30",t:"Aula 30 — Lógica Sequencial - Sequências Envolvendo Números II"},
+    {id:"pt3-31",t:"Aula 31 — Lógica Sequencial - Sequências Envolvendo Letras e Palavras"},
+    {id:"pt3-32",t:"Aula 32 — Lógica Sequencial Sequências Envolvendo Figuras"},
+    {id:"pt3-33",t:"Aula 33 — Lógica Sequencial Problemas Matriciais - Correlacionamento (Associações Lógicas)"},
+    {id:"pt3-34",t:"Aula 34 — Lógica Sequencial Verdades e Mentiras"},
+    {id:"pt3-35",t:"Aula 35 — Lógica Sequencial Problemas Envolvendo Mesas"},
+    {id:"pt3-36",t:"Aula 36 — Lógica Sequencial - Problemas Aritméticos e Geométricos"},
+    {id:"pt3-37",t:"Aula 37 — Lógica Sequencial - Simulado"},
+    {id:"pt3-38",t:"Aula 38 — Lógica Sequencial - Simulado II"},
+    {id:"pt3-39",t:"Aula 39 — Lógica Sequencial - Simulado III"},
+  ]},
+  { id:"pt4", name:"Arquitetura de Dados", tasks:[
+    {id:"pt4-01",t:"Aula 1 — Banco de Dados - Conceitos Iniciais"},
+    {id:"pt4-02",t:"Aula 1 — Banco de Dados - Metadados"},
+    {id:"pt4-03",t:"Aula 1 — ATENÇÃO! Assunto abordado na disciplina Análise de Dados e Informações"},
+    {id:"pt4-04",t:"Aula 1 — Banco de Dados NoSQL - Conceitos Básicos"},
+    {id:"pt4-05",t:"Aula 1 — Introdução"},
+    {id:"pt4-06",t:"Aula 2 — Banco de Dados - Tipos de Usuários Linguagem e Arquitetura SGBDS"},
+    {id:"pt4-07",t:"Aula 2 — Banco de Dados - Metadados II"},
+    {id:"pt4-08",t:"Aula 2 — Banco de Dados NoSQL - Questões de Concursos sobre Conceitos Básicos I"},
+    {id:"pt4-09",t:"Aula 2 — Tipos de Dados"},
+    {id:"pt4-10",t:"Aula 2 — Dimensões da Qualidade de Dados"},
+    {id:"pt4-11",t:"Aula 3 — Banco de Dados - Projeto de BD"},
+    {id:"pt4-12",t:"Aula 3 — Banco de Dados NoSQL - Questões de Concursos sobre Conceitos Básicos II"},
+    {id:"pt4-13",t:"Aula 3 — VS de Big Data"},
+    {id:"pt4-14",t:"Aula 3 — Técnicas e Boas Práticas"},
+    {id:"pt4-15",t:"Aula 4 — Banco de Dados - Evolução dos BDS"},
+    {id:"pt4-16",t:"Aula 4 — Banco de Dados NoSQL - NoSQL Orientados a Grafos"},
+    {id:"pt4-17",t:"Aula 4 — VS de Big Data II"},
+    {id:"pt4-18",t:"Aula 5 — Banco de Dados - MER (Modelo Entidade Relacionamento)"},
+    {id:"pt4-19",t:"Aula 5 — Banco de Dados NoSQL - NoSQL Orientados a Colunas e a Chaves - Valor"},
+    {id:"pt4-20",t:"Aula 5 — Data Lake"},
+    {id:"pt4-21",t:"Aula 6 — Banco de Dados - MER: Relacionamento"},
+    {id:"pt4-22",t:"Aula 6 — Banco de Dados NoSQL - NoSQL Orientados a Documentos"},
+    {id:"pt4-23",t:"Aula 6 — Data Lakehouse"},
+    {id:"pt4-24",t:"Aula 7 — Banco de Dados - Modelo Entidade Relacionamento Estendido (ERE)"},
+    {id:"pt4-25",t:"Aula 7 — Banco de Dados NoSQL - MongoDB"},
+    {id:"pt4-26",t:"Aula 7 — ETL x ELT"},
+    {id:"pt4-27",t:"Aula 8 — Banco de Dados - Modelo Relacional"},
+    {id:"pt4-28",t:"Aula 8 — Banco de Dados NoSQL - Redis"},
+    {id:"pt4-29",t:"Aula 8 — Ingestão de Dados e Pipeline"},
+    {id:"pt4-30",t:"Aula 9 — Banco de Dados - Mapeamento ER Relacional"},
+    {id:"pt4-31",t:"Aula 9 — Arquitetura de Big Data"},
+    {id:"pt4-32",t:"Aula 10 — Banco de Dados - Mapeamento ER Relacional II"},
+    {id:"pt4-33",t:"Aula 10 — DataMesh"},
+    {id:"pt4-34",t:"Aula 11 — Banco de Dados - Normalização"},
+    {id:"pt4-35",t:"Aula 11 — HADOOP"},
+    {id:"pt4-36",t:"Aula 12 — Banco de Dados - Normalização II"},
+    {id:"pt4-37",t:"Aula 12 — HADOOP II"},
+    {id:"pt4-38",t:"Aula 13 — Banco de Dados - Normalização - Exercícios"},
+    {id:"pt4-39",t:"Aula 13 — Apache Spark"},
+    {id:"pt4-40",t:"Aula 14 — Banco de Dados - Normalização 4FN e 5FN"},
+    {id:"pt4-41",t:"Aula 14 — Apache Spark II"},
+    {id:"pt4-42",t:"Aula 15 — Banco de Dados - Linguagem SQL"},
+    {id:"pt4-43",t:"Aula 15 — Apache Kafka"},
+    {id:"pt4-44",t:"Aula 16 — Banco de Dados - Linguagem SQL II"},
+    {id:"pt4-45",t:"Aula 16 — Coleta, Tratamento, Armazenamento, Integração e Recuperação de Dados"},
+    {id:"pt4-46",t:"Aula 17 — Banco de Dados - Linguagem SQL III"},
+    {id:"pt4-47",t:"Aula 18 — Banco de Dados - Linguagem SQL IV"},
+    {id:"pt4-48",t:"Aula 19 — Banco de Dados - Linguagem SQL - V"},
+    {id:"pt4-49",t:"Aula 20 — Banco de Dados - Linguagem SQL - VI"},
+    {id:"pt4-50",t:"Aula 21 — Banco de Dados - Linguagem SQL - VII"},
+    {id:"pt4-51",t:"Aula 22 — Banco de Dados - Linguagem SQL - VIII"},
+    {id:"pt4-52",t:"Aula 23 — Inteligência artificial"},
+    {id:"pt4-53",t:"Aula 24 — Inteligência de dados"},
+  ]},
+  { id:"pt5", name:"Engenharia de Software", tasks:[
+    {id:"pt5-01",t:"Aula 1 — Engenharia de Software - Conceitos Gerais"},
+    {id:"pt5-02",t:"Aula 1 — Ferramenta de versionamento Git"},
+    {id:"pt5-03",t:"Aula 2 — Engenharia de Software - Conceitos Gerais II"},
+    {id:"pt5-04",t:"Aula 2 — Ferramenta de Versionamento GIT II"},
+    {id:"pt5-05",t:"Aula 3 — Engenharia de Software - Conceitos Gerais III"},
+    {id:"pt5-06",t:"Aula 3 — Ferramenta de Versionamento GIT III"},
+    {id:"pt5-07",t:"Aula 4 — Engenharia de Software - Conceitos Gerais IV"},
+    {id:"pt5-08",t:"Aula 4 — Análise estática de código fonte: SonarQube"},
+    {id:"pt5-09",t:"Aula 5 — Engenharia de Software - RUP"},
+    {id:"pt5-10",t:"Aula 6 — Engenharia de Software - RUP II"},
+    {id:"pt5-11",t:"Aula 7 — Engenharia de Software - Requisitos"},
+    {id:"pt5-12",t:"Aula 8 — Engenharia de Software - Requisitos II"},
+    {id:"pt5-13",t:"Aula 9 — Engenharia de Software - Requisitos III"},
+    {id:"pt5-14",t:"Aula 10 — Engenharia de Software - Requisitos IV"},
+    {id:"pt5-15",t:"Aula 11 — Engenharia de Software - Requisitos V"},
+    {id:"pt5-16",t:"Aula 12 — Engenharia de Software - Requisitos VI"},
+    {id:"pt5-17",t:"Aula 13 — Engenharia de Software - Requisitos VII"},
+    {id:"pt5-18",t:"Aula 14 — Engenharia de Software - Estágio de Teste"},
+    {id:"pt5-19",t:"Aula 15 — Engenharia de Software - Estágio de Teste II"},
+    {id:"pt5-20",t:"Aula 16 — Engenharia de Software - Estágio de Teste III"},
+    {id:"pt5-21",t:"Aula 17 — Engenharia de Software - Estágio de Teste IV"},
+    {id:"pt5-22",t:"Aula 18 — Engenharia de Software - Estágio de Teste V"},
+    {id:"pt5-23",t:"Aula 19 — Engenharia de Software - Estágio de Teste VI"},
+    {id:"pt5-24",t:"Aula 20 — Engenharia de Software - Estágio de Teste VII"},
+    {id:"pt5-25",t:"Aula 21 — Engenharia de Software - Estágio de Teste VIII"},
+    {id:"pt5-26",t:"Aula 22 — Engenharia de Software - Estágio de Teste IX"},
+    {id:"pt5-27",t:"Aula 23 — Engenharia de Software - Estágio de Teste X"},
+    {id:"pt5-28",t:"Aula 24 — Engenharia de Software - Desenvolvimento Ágil"},
+    {id:"pt5-29",t:"Aula 25 — Engenharia de Software - Desenvolvimento Ágil II"},
+    {id:"pt5-30",t:"Aula 26 — Engenharia de Software - Desenvolvimento Ágil - DSDM - Desenvolvimento de Sistemas Dinâmicos"},
+    {id:"pt5-31",t:"Aula 27 — Engenharia de Software - Desenvolvimento Ágil - Scrum"},
+    {id:"pt5-32",t:"Aula 28 — Engenharia de Software - Desenvolvimento Ágil - Scrum II"},
+    {id:"pt5-33",t:"Aula 29 — Engenharia de Software - Desenvolvimento Ágil - Scrum III"},
+    {id:"pt5-34",t:"Aula 30 — Engenharia de Software - Desenvolvimento Ágil - XP - Extreme Programming"},
+    {id:"pt5-35",t:"Aula 31 — Engenharia de Software - Desenvolvimento Ágil - XP - Extreme Programming II"},
+    {id:"pt5-36",t:"Aula 32 — Engenharia de Software - Desenvolvimento Ágil - TDD - Test Driven Development"},
+    {id:"pt5-37",t:"Aula 33 — Engenharia de Software - Desenvolvimento Ágil - ATDD - Acceptance Test - Driven Development"},
+    {id:"pt5-38",t:"Aula 34 — Engenharia de Software - Desenvolvimento Ágil - BDD - Behavior Driven Development"},
+    {id:"pt5-39",t:"Aula 35 — Engenharia de Software - Desenvolvimento Ágil - Kanban"},
+    {id:"pt5-40",t:"Aula 36 — Engenharia de Software - DDD - Domain - Driven Design"},
+    {id:"pt5-41",t:"Aula 37 — Engenharia de Software - Desenvolvimento Ágil - Tópicos Relevantes"},
+    {id:"pt5-42",t:"Aula 38 — Engenharia de Software - Desenvolvimento Ágil - Tópicos Relevantes II"},
+    {id:"pt5-43",t:"Aula 39 — Engenharia de Software - Qualidade de Software"},
+    {id:"pt5-44",t:"Aula 40 — Engenharia de Software - Qualidade de Software II"},
+    {id:"pt5-45",t:"Aula 41 — Engenharia de Software - Qualidade de Software III"},
+    {id:"pt5-46",t:"Aula 42 — Engenharia de Software - Qualidade de Software IV"},
+    {id:"pt5-47",t:"Aula 43 — Engenharia de Software - Qualidade de Software V"},
+    {id:"pt5-48",t:"Aula 44 — Engenharia de Software - Pontos de Função"},
+    {id:"pt5-49",t:"Aula 45 — Engenharia de Software - Pontos de Função II"},
+    {id:"pt5-50",t:"Aula 46 — Engenharia de Software - Gerenciamento de Configuração"},
+    {id:"pt5-51",t:"Aula 47 — Engenharia de Software - Sistema de Controle de Versão"},
+    {id:"pt5-52",t:"Aula 48 — Engenharia de Software - Construção de Sistemas"},
+  ]},
+  { id:"pt6", name:"Gestão e Governança em TI", tasks:[
+    {id:"pt6-01",t:"Aula 1 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD"},
+    {id:"pt6-02",t:"Aula 2 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD II"},
+    {id:"pt6-03",t:"Aula 3 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD III"},
+    {id:"pt6-04",t:"Aula 4 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD IV"},
+    {id:"pt6-05",t:"Aula 5 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD V"},
+    {id:"pt6-06",t:"Aula 6 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD VI"},
+    {id:"pt6-07",t:"Aula 7 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD VII"},
+    {id:"pt6-08",t:"Aula 8 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD VIII"},
+    {id:"pt6-09",t:"Aula 9 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD IX"},
+    {id:"pt6-10",t:"Aula 10 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD X"},
+    {id:"pt6-11",t:"Aula 11 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XI"},
+    {id:"pt6-12",t:"Aula 12 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XII"},
+    {id:"pt6-13",t:"Aula 13 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIII"},
+    {id:"pt6-14",t:"Aula 14 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIV"},
+    {id:"pt6-15",t:"Aula 15 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XV"},
+    {id:"pt6-16",t:"Aula 16 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XVI"},
+    {id:"pt6-17",t:"Aula 17 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XVII"},
+    {id:"pt6-18",t:"Aula 18 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XVIII"},
+    {id:"pt6-19",t:"Aula 19 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIX"},
+    {id:"pt6-20",t:"Aula 20 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XX"},
+    {id:"pt6-21",t:"Aula 21 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXI"},
+    {id:"pt6-22",t:"Aula 22 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXII"},
+    {id:"pt6-23",t:"Aula 23 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXIII"},
+    {id:"pt6-24",t:"Aula 24 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXIV"},
+    {id:"pt6-25",t:"Aula 25 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXV"},
+    {id:"pt6-26",t:"Aula 26 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXVI"},
+    {id:"pt6-27",t:"Aula 27 — Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXVII"},
+  ]},
+  { id:"pt7", name:"Gerenciamento de Projetos e Produtos", tasks:[
+    {id:"pt7-01",t:"Aula 1 — Manifesto Ágil"},
+    {id:"pt7-02",t:"Aula 1 — Gestão de Projetos - PMBOK 7ª Edição"},
+    {id:"pt7-03",t:"Aula 2 — Manifesto Ágil - Exercícios"},
+    {id:"pt7-04",t:"Aula 2 — Gestão de Projetos - PMBOK 7ª Edição II"},
+    {id:"pt7-05",t:"Aula 3 — Scrum - Conceitos Iniciais e Pilares do Scrum"},
+    {id:"pt7-06",t:"Aula 3 — Gestão de Projetos - PMBOK 7ª Edição III"},
+    {id:"pt7-07",t:"Aula 4 — Scrum - Papéis do Scrum I"},
+    {id:"pt7-08",t:"Aula 4 — Gestão de Projetos - PMBOK 7ª Edição IV"},
+    {id:"pt7-09",t:"Aula 5 — Scrum - Papéis do Scrum II"},
+    {id:"pt7-10",t:"Aula 5 — Gestão de Projetos - PMBOK 7ª Edição - Escritório de Planejamento de Processos"},
+    {id:"pt7-11",t:"Aula 6 — Scrum - Eventos - P1"},
+    {id:"pt7-12",t:"Aula 6 — Gestão de Projetos - PMBOK 7ª Edição - Escritório de Planejamento de Processos II"},
+    {id:"pt7-13",t:"Aula 7 — Scrum - Eventos - P2"},
+    {id:"pt7-14",t:"Aula 7 — Gestão de Projetos - PMBOK 7ª Edição - Domínios de Desempenho - Partes Interessadas"},
+    {id:"pt7-15",t:"Aula 8 — Artefatos do Scrum"},
+    {id:"pt7-16",t:"Aula 8 — Gestão de Projetos - PMBOK 7ª Edição - Domínios de Desempenho - Partes Interessadas II"},
+    {id:"pt7-17",t:"Aula 9 — Artefatos do Scrum II"},
+    {id:"pt7-18",t:"Aula 9 — Gestão de Projetos - PMBOK 7ª Edição - Domínios de Desempenho - Partes Interessadas III"},
+    {id:"pt7-19",t:"Aula 10 — Scrum - Exercícios Complementares"},
+    {id:"pt7-20",t:"Aula 10 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Equipe"},
+    {id:"pt7-21",t:"Aula 11 — Kanban"},
+    {id:"pt7-22",t:"Aula 11 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Equipe II"},
+    {id:"pt7-23",t:"Aula 12 — Kanban II"},
+    {id:"pt7-24",t:"Aula 12 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Equipe III"},
+    {id:"pt7-25",t:"Aula 13 — Kanban III"},
+    {id:"pt7-26",t:"Aula 13 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida"},
+    {id:"pt7-27",t:"Aula 14 — Kanban -  Exercícios Complementares"},
+    {id:"pt7-28",t:"Aula 14 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida II"},
+    {id:"pt7-29",t:"Aula 15 — Lean - Pensamento Enxuto"},
+    {id:"pt7-30",t:"Aula 15 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida III"},
+    {id:"pt7-31",t:"Aula 16 — Lean - Pensamento Enxuto II"},
+    {id:"pt7-32",t:"Aula 16 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida IV"},
+    {id:"pt7-33",t:"Aula 17 — Lean - Pensamento Enxuto III"},
+    {id:"pt7-34",t:"Aula 17 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida V"},
+    {id:"pt7-35",t:"Aula 18 — Extreme Programming XP"},
+    {id:"pt7-36",t:"Aula 18 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento"},
+    {id:"pt7-37",t:"Aula 19 — Extreme Programming XP II"},
+    {id:"pt7-38",t:"Aula 19 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento II"},
+    {id:"pt7-39",t:"Aula 20 — Extreme Programming XP III"},
+    {id:"pt7-40",t:"Aula 20 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento III"},
+    {id:"pt7-41",t:"Aula 21 — Extreme Programming XP IV"},
+    {id:"pt7-42",t:"Aula 21 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento IV"},
+    {id:"pt7-43",t:"Aula 22 — Práticas Ágeis Em Escala - SAFE"},
+    {id:"pt7-44",t:"Aula 22 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento V"},
+    {id:"pt7-45",t:"Aula 23 — Práticas Ágeis Em Escala - SAFE II"},
+    {id:"pt7-46",t:"Aula 23 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento VI"},
+    {id:"pt7-47",t:"Aula 24 — Prática Ágeis Em Escala - Lessi e Nexus"},
+    {id:"pt7-48",t:"Aula 24 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento VII"},
+    {id:"pt7-49",t:"Aula 25 — Técnicas de Estimativa e Priorização"},
+    {id:"pt7-50",t:"Aula 25 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto"},
+    {id:"pt7-51",t:"Aula 26 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto II"},
+    {id:"pt7-52",t:"Aula 27 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto III"},
+    {id:"pt7-53",t:"Aula 28 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto IV"},
+    {id:"pt7-54",t:"Aula 29 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Medição"},
+    {id:"pt7-55",t:"Aula 30 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Medição II"},
+    {id:"pt7-56",t:"Aula 31 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Incerteza"},
+    {id:"pt7-57",t:"Aula 32 — Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Incerteza II"},
+    {id:"pt7-58",t:"Aula 33 — Gestão de Projetos - PMBOK 7ª Edição - Bote Salva Vidas"},
+  ]},
+  { id:"pt8", name:"Análise de Dados e Informações", tasks:[
+    {id:"pt8-01",t:"Aula 1 — Dado, Informação, Conhecimento e Inteligência"},
+    {id:"pt8-02",t:"Aula 1 — Business Intelligence - Introdução"},
+    {id:"pt8-03",t:"Aula 1 — ATENÇÃO! Assunto abordado na disciplina Arquitetura de Dados no Tópico 4"},
+    {id:"pt8-04",t:"Aula 1 — Dados Estruturados e Não Estruturados"},
+    {id:"pt8-05",t:"Aula 1 — CSV"},
+    {id:"pt8-06",t:"Aula 2 — Business Intelligence - Componentes"},
+    {id:"pt8-07",t:"Aula 2 — ATENÇÃO! Assunto abordado na disciplina Dados e Bases de Dados no Tópico"},
+    {id:"pt8-08",t:"Aula 3 — Business Intelligence - Data Warehouse"},
+    {id:"pt8-09",t:"Aula 3 — ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados"},
+    {id:"pt8-10",t:"Aula 4 — Business Intelligence - Data Mart e Olap"},
+    {id:"pt8-11",t:"Aula 4 — ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados"},
+    {id:"pt8-12",t:"Aula 5 — Business Intelligence - ETL"},
+    {id:"pt8-13",t:"Aula 5 — ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados"},
+    {id:"pt8-14",t:"Aula 6 — Business Intelligence - ETL II"},
+    {id:"pt8-15",t:"Aula 6 — ATENÇÃO! Assunto abordado na disciplina Processamento de Linguagem Natural (NLP)"},
+    {id:"pt8-16",t:"Aula 7 — Business Intelligence - Modelo Dimensional - Teoria"},
+    {id:"pt8-17",t:"Aula 7 — ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados"},
+    {id:"pt8-18",t:"Aula 8 — Business Intelligence - Modelo Dimensional - Questões de concurso"},
+    {id:"pt8-19",t:"Aula 9 — Business Intelligence - Modelo Dimensional - Questões de concurso II"},
+    {id:"pt8-20",t:"Aula 10 — Business Intelligence - Operações OLAP"},
+    {id:"pt8-21",t:"Aula 11 — Business Intelligence - Power BI"},
+    {id:"pt8-22",t:"Aula 12 — Business Intelligence - Power BI - Desktop"},
+    {id:"pt8-23",t:"Aula 13 — Business Intelligence - Power BI - Serviços"},
+    {id:"pt8-24",t:"Aula 14 — Business Intelligence - Tomada de Decisão Baseada em Dados Introdução"},
+    {id:"pt8-25",t:"Aula 15 — Business Intelligence - BI e SSD"},
+    {id:"pt8-26",t:"Aula 16 — Business Intelligence - BI 3.0"},
+    {id:"pt8-27",t:"Aula 17 — Visualização de Dados - Introdução"},
+    {id:"pt8-28",t:"Aula 18 — Visualização de Dados II"},
+    {id:"pt8-29",t:"Aula 19 — Visualização de Dados III"},
+    {id:"pt8-30",t:"Aula 20 — Visualização de Dados IV"},
+    {id:"pt8-31",t:"Aula 21 — Visualização de Dados V"},
+  ]},
+  { id:"pt9", name:"Segurança da Informação", tasks:[
+    {id:"pt9-01",t:"Aula 1 — Análise de Vulnerabilidades"},
+    {id:"pt9-02",t:"Aula 1 — Tecnologias de Backup"},
+    {id:"pt9-03",t:"Aula 1 — Engenharia Reversa de Software - Análise Estática, Dinâmica e Post - Mortem"},
+    {id:"pt9-04",t:"Aula 1 — EDR e XDR"},
+    {id:"pt9-05",t:"Aula 1 — Desenvolvimento Seguro - CLASP"},
+    {id:"pt9-06",t:"Aula 1 — Prevenção e Tratamentos de Incidentes - Introdução"},
+    {id:"pt9-07",t:"Aula 1 — Testes de Penetração - Conceitos iniciais"},
+    {id:"pt9-08",t:"Aula 1 — ISO 31000 - Gestão de Riscos"},
+    {id:"pt9-09",t:"Aula 1 — ISO/IEC 27002:2022 - Controles de Segurança da Informação - Introdução"},
+    {id:"pt9-10",t:"Aula 1 — MITRE ATT&CK"},
+    {id:"pt9-11",t:"Aula 1 — Segurança em Nuvem"},
+    {id:"pt9-12",t:"Aula 2 — Análise de Vulnerabilidades II"},
+    {id:"pt9-13",t:"Aula 2 — Engenharia Reversa de Software - Análise Híbrida e Antianálise"},
+    {id:"pt9-14",t:"Aula 2 — EDR e XDR II"},
+    {id:"pt9-15",t:"Aula 2 — Desenvolvimento Seguro - OWASP"},
+    {id:"pt9-16",t:"Aula 2 — Prevenção de Incidentes"},
+    {id:"pt9-17",t:"Aula 2 — Testes de Penetração - Tipos de Testes"},
+    {id:"pt9-18",t:"Aula 2 — ISO 31000 - Gestão de Riscos II"},
+    {id:"pt9-19",t:"Aula 2 — ISO/IEC 27002:2022 - Controles de Segurança da Informação - Escopo"},
+    {id:"pt9-20",t:"Aula 2 — MITRE ATT&CK II"},
+    {id:"pt9-21",t:"Aula 2 — Segurança em Nuvem II"},
+    {id:"pt9-22",t:"Aula 3 — Testes de Segurança de Aplicações - SAST"},
+    {id:"pt9-23",t:"Aula 3 — Engenharia Reversa de Software - Análise Dinâmica - Avançado"},
+    {id:"pt9-24",t:"Aula 3 — EDR e XDR III"},
+    {id:"pt9-25",t:"Aula 3 — Desenvolvimento Seguro - OWASP II"},
+    {id:"pt9-26",t:"Aula 3 — Tratamento de Incidentes"},
+    {id:"pt9-27",t:"Aula 3 — Testes de Penetração - Metodologias"},
+    {id:"pt9-28",t:"Aula 3 — ISO 31000 - Gestão de Riscos III"},
+    {id:"pt9-29",t:"Aula 3 — ISO/IEC 27002:2022 - Controles de Segurança da Informação - Controles Organizacionais"},
+    {id:"pt9-30",t:"Aula 3 — MITRE ATT&CK III"},
+    {id:"pt9-31",t:"Aula 3 — Segurança em Nuvem - Zero Trust"},
+    {id:"pt9-32",t:"Aula 4 — Testes de Segurança de Aplicações - DAST"},
+    {id:"pt9-33",t:"Aula 4 — Engenharia Reversa de Software - Ofuscação"},
+    {id:"pt9-34",t:"Aula 4 — Desenvolvimento Seguro - OWASP III"},
+    {id:"pt9-35",t:"Aula 4 — Gestão de Incidentes na ABNT NBR ISO / IEC 27002"},
+    {id:"pt9-36",t:"Aula 4 — Testes de Penetração - Técnicas e Ferramentas"},
+    {id:"pt9-37",t:"Aula 4 — ISO 31000 - Gestão de Riscos IV"},
+    {id:"pt9-38",t:"Aula 4 — ISO/IEC 27002:2022 - Controles de Segurança da Informação - Controles Organizacionais II"},
+    {id:"pt9-39",t:"Aula 4 — MITRE ATT&CK IV"},
+    {id:"pt9-40",t:"Aula 4 — Segurança em Nuvem - Conectividade Site - To - Site"},
+    {id:"pt9-41",t:"Aula 5 — Testes de Segurança de Aplicações - IAST"},
+    {id:"pt9-42",t:"Aula 5 — Engenharia Reversa de Software - Descompilação de Programas"},
+    {id:"pt9-43",t:"Aula 5 — OWASP Top 10 2025"},
+    {id:"pt9-44",t:"Aula 5 — Testes de Penetração - Técnicas e Ferramentas II"},
+    {id:"pt9-45",t:"Aula 5 — ISO 31000 - Gestão de Riscos V"},
+    {id:"pt9-46",t:"Aula 5 — ISO/IEC 27002:2022 - Controles de Segurança da Informação - Controles Organizacionais III"},
+    {id:"pt9-47",t:"Aula 5 — Segurança em Nuvem - Direct Connect Express Route"},
+    {id:"pt9-48",t:"Aula 6 — Engenharia Reversa de Software - Debuggers"},
+    {id:"pt9-49",t:"Aula 6 — Testes de Penetração - Questões"},
+    {id:"pt9-50",t:"Aula 6 — ISO/IEC 27002:2022 - Controles de Segurança da Informação"},
+    {id:"pt9-51",t:"Aula 6 — Segurança Em Nuvem - Compliance Em Nuvem"},
+    {id:"pt9-52",t:"Aula 7 — Engenharia Reversa de Software - Indicadores de Comprometimento (IOCs)"},
+    {id:"pt9-53",t:"Aula 7 — ISO/IEC 27002:2022 - Controles de Segurança da Informação"},
+    {id:"pt9-54",t:"Aula 8 — Engenharia Reversa de Software - Malware Polimórfico"},
+    {id:"pt9-55",t:"Aula 8 — ISO/IEC 27002:2022 - Controles de Segurança da Informação"},
+    {id:"pt9-56",t:"Aula 9 — Engenharia Reversa de Software - Técnicas de Sandboxing"},
+    {id:"pt9-57",t:"Aula 9 — ISO/IEC 27002:2022 - Controles de Segurança da Informação"},
+    {id:"pt9-58",t:"Aula 10 — ISO/IEC 27002:2022 - Controles Organizacionais"},
+    {id:"pt9-59",t:"Aula 11 — ISO/IEC 27002:2022 - Controles Organizacionais II"},
+    {id:"pt9-60",t:"Aula 12 — ISO/IEC 27002:2022 - Controles Organizacionais III"},
+    {id:"pt9-61",t:"Aula 13 — ISO/IEC 27002:2022 - Controles Organizacionais IV"},
+    {id:"pt9-62",t:"Aula 14 — ISO/IEC 27002:2022 - Controles Organizacionais V"},
+    {id:"pt9-63",t:"Aula 15 — ISO/IEC 27002:2022 - Controles Organizacionais VI"},
+    {id:"pt9-64",t:"Aula 16 — ISO/IEC 27002:2022 - Controles Organizacionais VII"},
+    {id:"pt9-65",t:"Aula 17 — ISO/IEC 27002:2022 - Controles Organizacionais VIII"},
+    {id:"pt9-66",t:"Aula 18 — ISO/IEC 27002:2022 - Controles Organizacionais IX"},
+    {id:"pt9-67",t:"Aula 19 — ISO/IEC 27002:2022 - Controles Organizacionais X"},
+    {id:"pt9-68",t:"Aula 20 — ISO/IEC 27002:2022 - Controles Organizacionais XI"},
+    {id:"pt9-69",t:"Aula 21 — ISO/IEC 27002:2022 - Controles Organizacionais XII"},
+    {id:"pt9-70",t:"Aula 22 — ISO/IEC 27002:2022 - Controles Organizacionais XIII"},
+    {id:"pt9-71",t:"Aula 23 — ISO/IEC 27002:2022 - Controles Organizacionais XIV"},
+    {id:"pt9-72",t:"Aula 24 — ISO/IEC 27002:2022 - Controles Organizacionais XV"},
+    {id:"pt9-73",t:"Aula 25 — ISO/IEC 27002:2022 - Controles Organizacionais XVI"},
+    {id:"pt9-74",t:"Aula 26 — ISO/IEC 27002:2022 - Controles Organizacionais XVII"},
+    {id:"pt9-75",t:"Aula 27 — ISO/IEC 27002:2022 - Controles Organizacionais XVIII"},
+    {id:"pt9-76",t:"Aula 28 — ISO/IEC 27002:2022 - Controles Organizacionais XIX"},
+    {id:"pt9-77",t:"Aula 29 — ISO/IEC 27002:2022 - Controles Organizacionais XX"},
+    {id:"pt9-78",t:"Aula 30 — ISO/IEC 27002:2022 - Controles Organizacionais XXI"},
+    {id:"pt9-79",t:"Aula 31 — ISO/IEC 27002:2022 - Controles Organizacionais XXII"},
+    {id:"pt9-80",t:"Aula 32 — ISO/IEC 27002:2022 - Controles Organizacionais XXIII"},
+    {id:"pt9-81",t:"Aula 33 — ISO/IEC 27002:2022 - Controles Organizacionais XXIV"},
+    {id:"pt9-82",t:"Aula 34 — ISO/IEC 27002:2022 - Controles Organizacionais XXV"},
+    {id:"pt9-83",t:"Aula 35 — ISO/IEC 27002:2022 - Controles Organizacionais XXVI"},
+    {id:"pt9-84",t:"Aula 36 — ISO/IEC 27002:2022 - Controles de Pessoas"},
+    {id:"pt9-85",t:"Aula 37 — ISO/IEC 27002:2022 - Controles de Pessoas II"},
+    {id:"pt9-86",t:"Aula 38 — ISO/IEC 27002:2022 - Controles Organizacionais"},
+    {id:"pt9-87",t:"Aula 39 — ISO/IEC 27002:2022 - Controles Organizacionais II"},
+    {id:"pt9-88",t:"Aula 40 — ISO/IEC 27002:2022 - Controles de Pessoas"},
+    {id:"pt9-89",t:"Aula 41 — ISO/IEC 27002:2022 - Controles Físicos"},
+    {id:"pt9-90",t:"Aula 42 — ISO/IEC 27002:2022 - Controles Físicos II"},
+    {id:"pt9-91",t:"Aula 43 — ISO/IEC 27002:2022 - Controles Físicos III"},
+    {id:"pt9-92",t:"Aula 44 — ISO/IEC 27002:2022 - Controles Físicos IV"},
+    {id:"pt9-93",t:"Aula 45 — ISO/IEC 27002:2022 - Controles Físicos V"},
+    {id:"pt9-94",t:"Aula 46 — ISO/IEC 27002:2022 - Controles Físicos VI"},
+    {id:"pt9-95",t:"Aula 47 — ISO/IEC 27002:2022 - Controles Físicos VII"},
+    {id:"pt9-96",t:"Aula 48 — ISO/IEC 27002:2022 - Controles Físicos VIII"},
+    {id:"pt9-97",t:"Aula 49 — ISO/IEC 27002:2022 - Controles Tecnológicos"},
+    {id:"pt9-98",t:"Aula 50 — ISO/IEC 27002:2022 - Controles Tecnológicos II"},
+    {id:"pt9-99",t:"Aula 51 — ISO/IEC 27002:2022 - Controles Tecnológicos III"},
+    {id:"pt9-100",t:"Aula 52 — ISO/IEC 27002:2022 - Controles Tecnológicos IV"},
+    {id:"pt9-101",t:"Aula 53 — ISO/IEC 27002:2022 - Controles Tecnológicos V"},
+    {id:"pt9-102",t:"Aula 54 — ISO/IEC 27002:2022 - Controles Tecnológicos VI"},
+  ]},
+  { id:"pt10", name:"User Experience (UX)", tasks:[
+    {id:"pt10-01",t:"Aula 1 — Storytelling - Introdução"},
+    {id:"pt10-02",t:"Aula 1 — Design Thinking - Introdução"},
+    {id:"pt10-03",t:"Aula 1 — ATENÇÃO! Assunto abordado na disciplina Análise de Dados e Informações"},
+    {id:"pt10-04",t:"Aula 2 — Storytelling - Processo de Construção da História"},
+    {id:"pt10-05",t:"Aula 2 — Design Thinking - Introdução II"},
+    {id:"pt10-06",t:"Aula 3 — Storytelling - Narrativas"},
+    {id:"pt10-07",t:"Aula 3 — Design Thinking - Introdução III"},
+    {id:"pt10-08",t:"Aula 4 — Storytelling - Análises e Visuais"},
+    {id:"pt10-09",t:"Aula 4 — Design Thinking - Empatizar - O Coração do Design"},
+    {id:"pt10-10",t:"Aula 5 — Storytelling - Polimento da História"},
+    {id:"pt10-11",t:"Aula 5 — Design Thinking - Empatizar - O Coração do Design II"},
+    {id:"pt10-12",t:"Aula 6 — Storytelling - Visuais"},
+    {id:"pt10-13",t:"Aula 6 — Design Thinking - Empatizar - O Coração do Design III"},
+    {id:"pt10-14",t:"Aula 7 — Storytelling - Visuais II"},
+    {id:"pt10-15",t:"Aula 7 — Design Thinking - Ideação"},
+    {id:"pt10-16",t:"Aula 8 — Storytelling - Visuais III"},
+    {id:"pt10-17",t:"Aula 8 — Design Thinking - Prototipagem"},
+  ]},
+  { id:"pt11", name:"Revisão", tasks:[
+    {id:"pt11-01",t:"Revisão"},
+  ]},
+  { id:"pt12", name:"Bônus - Inteligência e Equilíbrio Emocional", tasks:[
+    {id:"pt12-01",t:"Aula 1 — Os 50 Fundamentos Emocionais do Concurseiro"},
+    {id:"pt12-02",t:"Aula 2 — Protagonista, Coadjuvante e Antagonista - Quem é Você?"},
+    {id:"pt12-03",t:"Aula 3 — Os 50 Fundamentos Emocionais"},
+    {id:"pt12-04",t:"Aula 4 — Autossabotagem"},
+    {id:"pt12-05",t:"Aula 5 — Procrastinação"},
+    {id:"pt12-06",t:"Aula 6 — Procrastinação II"},
+  ]},
+]};
+
 /* ── SANKHYA (SQL + JAVA) DATA ── */
 /* Fonte: DIO Pro (web.dio.me). Preparação p/ suporte e desenvolvimento Sankhya ERP. 4h/semana, dentro do horário comercial, 12 semanas. Não compete com a rotina pessoal (fs/de/bb) que roda fora do expediente. */
 const SK = { label:"SQL e Java — Sankhya ERP", color:"#10b981", grad:"linear-gradient(135deg,#10b981,#f97316)", phases:[
@@ -694,8 +1253,9 @@ const PROJECTS = [
    ══════════════════════════════════════════════════════════════════════ */
 const SANKHYA_TRILHA_ATIVA = false;
 
-/* Intensidade inicial por trilha: 'alta' | 'moderada' | 'pausada' (item 2) */
-const INTENS_PADRAO = { fs:'alta', de:'pausada', bb:'alta' /*, sk:'alta' */ };
+/* Intensidade inicial por trilha: 'alta' | 'moderada' | 'pausada' (item 2)
+   BB pausado e Transpetro em alta: curso da Transpetro comprado, foco muda pra lá. */
+const INTENS_PADRAO = { fs:'alta', de:'pausada', bb:'pausada', pt:'alta' /*, sk:'alta' */ };
 const INTENS_INFO = {
   alta:     { ord:0, cls:'',                badge:'' },
   moderada: { ord:1, cls:'intens-moderada', badge:'Ritmo reduzido' },
@@ -710,7 +1270,7 @@ function setTrilhaIntens(key, val){
   saveState();
   rerenderAll();
 }
-function tabKey(tab){ return tab==='fullstack' ? 'fs' : tab==='dados' ? 'de' : tab; }
+function tabKey(tab){ return tab==='fullstack' ? 'fs' : tab==='dados' ? 'de' : tab==='transpetro' ? 'pt' : tab; }
 
 /* Nota exibida na aba Sankhya quando ela estiver ativa */
 const SK_NOTE = `<strong style="color:#34d399">4h/semana, dentro do expediente</strong> — paralelo à rotina pessoal (Fullstack/Dados/BB), não compete com ela.<br><br>
@@ -742,6 +1302,7 @@ function allTasks(area) {
   if(area==='fs') return FS.phases.flatMap(p=>p.tasks);
   if(area==='de') return DE.phases.flatMap(p=>p.tasks);
   if(area==='bb') return BB.groups.flatMap(g=>g.tasks);
+  if(area==='pt') return PT.groups.flatMap(g=>g.tasks);
   if(area==='sk') return SK.phases.flatMap(p=>p.tasks);
   return [];
 }
@@ -787,9 +1348,9 @@ function refreshProgress() {
   document.querySelectorAll('[data-prog]').forEach(el => {
     const id = el.dataset.prog;
     let tasks;
-    if(['fs','de','bb','sk'].includes(id)) tasks = allTasks(id);
+    if(['fs','de','bb','pt','sk'].includes(id)) tasks = allTasks(id);
     else {
-      const ph = [...FS.phases,...DE.phases,...SK.phases].find(p=>p.id===id) || BB.groups.find(g=>g.id===id);
+      const ph = [...FS.phases,...DE.phases,...SK.phases].find(p=>p.id===id) || BB.groups.find(g=>g.id===id) || PT.groups.find(g=>g.id===id);
       tasks = ph ? ph.tasks : [];
     }
     const {done,total,pct} = progress(tasks);
@@ -876,6 +1437,7 @@ function sankhyaHint(key){
 function areaKeyOf(area){
   if(area.includes('Dados')) return 'de';
   if(area.includes('Banco') || area === 'BB') return 'bb';
+  if(area === 'Transpetro') return 'pt';
   if(area === 'Descanso') return null;
   return 'fs';
 }
@@ -883,9 +1445,10 @@ const AREA_META = {
   fs: { area:'Fullstack',       color:'#a855f7' },
   de: { area:'Eng. de Dados',   color:'#06b6d4' },
   bb: { area:'Banco do Brasil', color:'#f59e0b' },
+  pt: { area:'Transpetro',      color:'#14b8a6' },
 };
 function effectiveWeek(){
-  const alvos = ['fs','bb'].filter(k => trilhaIntens(k) === 'alta');
+  const alvos = ['pt','fs','bb'].filter(k => trilhaIntens(k) === 'alta');
   const pool = alvos.length ? alvos : ['fs']; // fallback defensivo
   let i = 0;
   return WEEK.map(d => {
@@ -910,7 +1473,7 @@ function effectiveWeek(){
 
 /* ── INTENSIDADE VISUAL NAS ABAS + "pausada" vai pro fim (item 5) ── */
 function applyIntensToNav(){
-  const order = ['fullstack','dados','bb'];
+  const order = ['fullstack','dados','bb','transpetro'];
   const btns = order.map(t=>document.querySelector(`.nav-btn[data-tab="${t}"]`)).filter(Boolean);
   if(!btns.length) return;
   const nav = btns[0].parentNode;
@@ -958,6 +1521,7 @@ function rerenderAll(){
   renderArea(document.getElementById('tab-fullstack'), FS, 'fs');
   renderArea(document.getElementById('tab-dados'), DE, 'de');
   renderBB();
+  renderPT();
   if (SANKHYA_TRILHA_ATIVA)
     renderArea(document.getElementById('tab-sankhya'), SK, 'sk', SK_NOTE);
   applyIntensToNav();
@@ -972,12 +1536,14 @@ function renderHoje() {
   const fsP = progress(allTasks('fs'));
   const deP = progress(allTasks('de'));
   const bbP = progress(allTasks('bb'));
+  const ptP = progress(allTasks('pt'));
   const skP = progress(allTasks('sk'));
 
   const OV = [
     { key:'fs', name:`${IC.code} Fullstack`, col:'#c084fc', grad:'linear-gradient(90deg,#a855f7,#ec4899)', p:fsP },
     { key:'de', name:`${IC.db} Dados`,       col:'#22d3ee', grad:'linear-gradient(90deg,#06b6d4,#3b82f6)', p:deP },
     { key:'bb', name:`${IC.bank} BB`,        col:'#fbbf24', grad:'linear-gradient(90deg,#f59e0b,#f97316)', p:bbP },
+    { key:'pt', name:`${IC.globe} Transpetro`, col:'#2dd4bf', grad:'linear-gradient(90deg,#14b8a6,#0ea5e9)', p:ptP },
   ];
   if (SANKHYA_TRILHA_ATIVA) OV.push(
     { key:'sk', name:`${IC.server} Sankhya`, col:'#34d399', grad:'linear-gradient(90deg,#10b981,#f97316)', p:skP });
@@ -1031,7 +1597,7 @@ function renderHoje() {
     ? pool.map(t=>taskHTML(t)).join('')
     : `<li style="padding:12px;color:var(--ok);font-weight:600">Todos os tópicos desta área estão marcados. Passe para a próxima fase.</li>`;
 
-  const areaIcon = areaKey==='fs' ? IC.code : areaKey==='de' ? IC.db : IC.bank;
+  const areaIcon = areaKey==='fs' ? IC.code : areaKey==='de' ? IC.db : areaKey==='pt' ? IC.globe : IC.bank;
 
   const isBizDay = dow>=1 && dow<=5;
   const skPool = allTasks('sk').filter(t=>!isDone(t.id)).slice(0,3);
@@ -1082,7 +1648,7 @@ function getDayTip(dow) {
 /* ── RENDER SEMANA ── */
 function renderSemana() {
   const today = new Date().getDay();
-  const areaIcon = a => a.includes('Dados')?IC.db : a.includes('Banco')||a==='BB'?IC.bank : a==='Descanso'?IC.moon : IC.code;
+  const areaIcon = a => a.includes('Dados')?IC.db : a.includes('Banco')||a==='BB'?IC.bank : a==='Transpetro'?IC.globe : a==='Descanso'?IC.moon : IC.code;
 
   const weekHTML = effectiveWeek().map((d,i)=>`
     <div class="day-card${i===today?' today':''}${d.redirected?' intens-moderada':''}"${i===today?` style="border-color:${d.color}"`:''}>
@@ -1098,7 +1664,8 @@ function renderSemana() {
   const TR = [
     { key:'fs', badge:'badge-fs', ico:IC.code,   label:'Fullstack', h:'~3h por semana',   txt:'Segunda e quinta. Foco em código prático. Commite no GitHub toda semana.' },
     { key:'de', badge:'badge-de', ico:IC.db,     label:'Dados',     h:'~3,5h por semana', txt:'Quarta e sábado. Python e SQL precisam de prática constante. Escreva código.' },
-    { key:'bb', badge:'badge-bb', ico:IC.bank,   label:'BB',        h:'~3h por semana',   txt:'Terça e sexta. Alterne teoria e questões. Nunca só leia — resolve questões.' },
+    { key:'bb', badge:'badge-bb', ico:IC.bank,   label:'BB',        h:'~3h por semana',   txt:'Pausado por enquanto — foco em Transpetro. Terça e sexta redirecionam sozinhas.' },
+    { key:'pt', badge:'badge-pt', ico:IC.globe,  label:'Transpetro', h:'~3h por semana',  txt:'Terça e sexta (herdado do BB pausado). 12 matérias, 520 aulas — revise sempre que resolver questões.' },
   ];
   if (SANKHYA_TRILHA_ATIVA) TR.push(
     { key:'sk', badge:'badge-sk', ico:IC.server, label:'Sankhya',   h:'4h por semana — expediente', txt:'Segunda a sexta, nos horários livres do trabalho. Paralelo à rotina acima, não substitui nenhum dia dela.' });
@@ -1238,6 +1805,54 @@ function renderBB() {
     </div>`;
 }
 
+/* ── RENDER TRANSPETRO ── */
+function renderPT() {
+  const tot = progress(allTasks('pt'));
+  const groups = PT.groups.map(g=>{
+    const p = progress(g.tasks);
+    const c = '#14b8a6';
+    return `
+      <div class="phase-wrap">
+        <div class="phase-head" style="background:${c}12;border:1px solid ${c}38" onclick="togglePhase('${g.id}')">
+          <div><div class="phase-title-text" style="color:${c}">${g.name}</div></div>
+          <div class="phase-meta" style="flex-direction:column;align-items:flex-end;gap:5px">
+            <span data-prog-lbl="${g.id}">${p.pct}% (${p.done}/${p.total})</span>
+            <div class="prog-bar" style="width:80px"><div class="prog-fill" data-prog="${g.id}" style="width:${p.pct}%;background:${c}"></div></div>
+          </div>
+        </div>
+        <div class="phase-body" id="phase-${g.id}">
+          <ul class="task-list">${g.tasks.map(t=>taskHTML(t)).join('')}</ul>
+        </div>
+      </div>`;
+  }).join('');
+
+  const ptIt = INTENS_INFO[trilhaIntens('pt')];
+
+  document.getElementById('tab-transpetro').innerHTML = `
+    <div class="${ptIt.cls}">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="badge badge-pt" style="margin:0">${IC.globe} ${PT.label}</span>
+      ${ptIt.badge ? `<span class="intens-badge">${ptIt.badge}</span>` : ''}
+      <select class="intens-select" style="margin-left:auto" onchange="setTrilhaIntens('pt', this.value)">
+        ${['alta','moderada','pausada'].map(v=>`<option value="${v}" ${trilhaIntens('pt')===v?'selected':''}>Intensidade: ${v}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px">
+      <div class="sec-title">Progresso total</div>
+      <span style="font-size:1.1rem;font-weight:800;color:#2dd4bf">${tot.pct}%</span>
+    </div>
+    <div class="prog-bar" style="height:9px;margin-bottom:10px">
+      <div class="prog-fill" data-prog="pt" style="width:${tot.pct}%;background:linear-gradient(90deg,#14b8a6,#0ea5e9)"></div>
+    </div>
+    <div class="sec-sub">Profissional Transpetro de Nível Superior — Ênfase 5: Análise de Sistemas - Processos de Negócios.</div>
+    <div class="highlight-card" style="border-color:#14b8a6;margin-bottom:18px">
+      <strong style="color:#2dd4bf">Fonte:</strong> lista extraída do cronograma real do curso no Gran Cursos Online.
+      A numeração "Aula N" é a do próprio curso — cada matéria mistura conteúdo novo com resolução de provas anteriores.
+    </div>
+    ${groups}
+    </div>`;
+}
+
 /* ── RENDER PROJETOS ── */
 function renderProjetos() {
   const areaLabels = {fs:'Projetos Fullstack', de:'Projetos Engenharia de Dados', bb:'Projetos Banco do Brasil'};
@@ -1273,7 +1888,7 @@ function renderProjetos() {
 function renderMotivacao() {
   const nextFS = allTasks('fs').find(t=>!isDone(t.id));
   const nextDE = allTasks('de').find(t=>!isDone(t.id));
-  const nextBB = allTasks('bb').find(t=>!isDone(t.id));
+  const nextPT = allTasks('pt').find(t=>!isDone(t.id));
 
   document.getElementById('tab-motivacao').innerHTML = `
     <div class="sec-title">Anti-Desistência</div>
@@ -1287,9 +1902,9 @@ function renderMotivacao() {
         <div class="sec-title" style="color:#f87171">Modo emergência ativado</div>
         <div class="sec-sub">Regra: faça APENAS 1 tarefa de cada área. Só isso. Depois pode parar.</div>
         <ul class="task-list">
+          ${nextPT ? taskHTML({...nextPT,t:'[Transpetro] '+nextPT.t}) : '<li style="padding:10px;color:var(--ok)">Transpetro completo.</li>'}
           ${nextFS ? taskHTML({...nextFS,t:'[Fullstack] '+nextFS.t}) : '<li style="padding:10px;color:var(--ok)">Fullstack completo.</li>'}
           ${nextDE ? taskHTML({...nextDE,t:'[Dados] '+nextDE.t}) : '<li style="padding:10px;color:var(--ok)">Dados completo.</li>'}
-          ${nextBB ? taskHTML({...nextBB,t:'[BB] '+nextBB.t}) : '<li style="padding:10px;color:var(--ok)">BB completo.</li>'}
         </ul>
         <div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:8px;font-size:0.85rem;color:var(--muted)">
           Se fizer essas 3 tarefas, você fez mais do que a maioria das pessoas que "quer estudar".

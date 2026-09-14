@@ -33,6 +33,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .prog-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:12px}
 .prog-fill{height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);border-radius:99px;transition:width .6s}
 .sidebar-back{margin-top:auto;padding:12px 10px;border-top:1px solid var(--border)}
+.conc-switch{display:flex;gap:2px;margin:0 10px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px}
+.conc-btn{flex:1;padding:6px 8px;border-radius:6px;border:none;background:none;color:var(--muted);font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s}
+.conc-btn.active{background:var(--accent);color:#fff}
 
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -193,7 +196,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 <aside class="sidebar">
   <div class="sidebar-logo">
     Cronograma Gran
-    <span>BB — Agente TI 2026</span>
+    <span id="sidebar-sub">BB — Agente TI 2026</span>
+  </div>
+  <div class="conc-switch">
+    <button class="conc-btn active" data-conc="bb" onclick="setConcurso('bb')">BB</button>
+    <button class="conc-btn" data-conc="pt" onclick="setConcurso('pt')">Transpetro</button>
   </div>
   <nav class="sidebar-nav">
     <button class="snav active" data-view="mes" onclick="switchView('mes',this)">
@@ -246,9 +253,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <div class="stat-label">Contagem regressiva</div>
     <div class="cd-num" id="cd-days">—</div>
     <div class="cd-sub">até a prova · <span id="cd-date">13/11/2026</span></div>
-    <div class="cd-warn">
+    <div class="cd-warn" id="cd-warn">
       ⚠️ <strong>Data estimada, não confirmada.</strong> O edital oficial ainda não foi
-      publicado — 13/11/2026 é uma projeção e pode mudar.
+      publicado — esta é uma projeção e pode mudar.
     </div>
   </div>
 </aside>
@@ -313,6 +320,17 @@ const MC = {
   'Inteligência Emocional':      {c:'#f97316',bg:'#f9731618',b:'#f9731640'},
   'Reprise/Eventos':             {c:'#7777bb',bg:'#7777bb18',b:'#7777bb40'},
   'Redação Discursiva':          {c:'#8b5cf6',bg:'#8b5cf618',b:'#8b5cf640'},
+  // ── Transpetro ──
+  'Arquitetura de Dados':               {c:'#0ea5e9',bg:'#0ea5e918',b:'#0ea5e940'},
+  'Gerenciamento de Projetos e Produtos':{c:'#f59e0b',bg:'#f59e0b18',b:'#f59e0b40'},
+  'Gestão e Governança em TI':           {c:'#ef4444',bg:'#ef444418',b:'#ef444440'},
+  'Engenharia de Software':              {c:'#a855f7',bg:'#a855f718',b:'#a855f740'},
+  'User Experience (UX)':                {c:'#ec4899',bg:'#ec489918',b:'#ec489940'},
+  'Análise de Dados e Informações':      {c:'#22d3ee',bg:'#22d3ee18',b:'#22d3ee40'},
+  'Lógica Matemática':                   {c:'#3b82f6',bg:'#3b82f618',b:'#3b82f640'},
+  'Segurança da Informação':             {c:'#dc2626',bg:'#dc262618',b:'#dc262640'},
+  'Revisão':                             {c:'#7777bb',bg:'#7777bb18',b:'#7777bb40'},
+  'Bônus - Inteligência e Equilíbrio Emocional':{c:'#f97316',bg:'#f9731618',b:'#f9731640'},
 };
 function mc(m){return MC[m]||{c:'#7777aa',bg:'#7777aa18',b:'#7777aa40'};}
 function shortMat(m){
@@ -327,12 +345,22 @@ function shortMat(m){
     'Inteligência Emocional':'Int. Emoc.',
     'Reprise/Eventos':'Reprise',
     'Redação Discursiva':'Redação',
+    'Arquitetura de Dados':'Arq. Dados',
+    'Gerenciamento de Projetos e Produtos':'Ger. Projetos',
+    'Gestão e Governança em TI':'Gov. TI',
+    'Engenharia de Software':'Eng. Software',
+    'User Experience (UX)':'UX',
+    'Análise de Dados e Informações':'Análise Dados',
+    'Lógica Matemática':'Lógica',
+    'Segurança da Informação':'Seg. Informação',
+    'Revisão':'Revisão',
+    'Bônus - Inteligência e Equilíbrio Emocional':'Bônus',
   };
   return map[m]||m;
 }
 
 /* ── DADOS DO CRONOGRAMA (Gran Cursos — BB Agente TI) ── */
-const BASE_LESSONS = [
+const BASE_LESSONS_BB = [
   // ─── JULHO 2026 ───
   // Jul 2 (Qui)
   {id:'lp01',m:'Língua Portuguesa',n:1,t:'Apresentação e Ortografia',d:'2026-07-02',h:'23:00',he:'23:27'},
@@ -588,14 +616,681 @@ const BASE_LESSONS = [
   {id:'fin10',m:'Reprise/Eventos',n:39,t:'DIA DA PROVA — Boa sorte! 🎯',d:'2026-11-13'},
 ];
 
-/* Data da prova — ESTIMATIVA (sem edital oficial publicado). Ajuste quando o edital sair. */
-const PROVA_DATE = '2026-11-13';
+/* ── DADOS DO CRONOGRAMA — TRANSPETRO (Gran Cursos Online) ── */
+/* Extraído via gran_extrator.js em 2026-09-14. Cobre set/out/nov de 2026. */
+const BASE_LESSONS_PT = [
+  {id:'pt_ev_1',m:'Língua Portuguesa',n:1,t:'Aula de Apresentação - Língua Portuguesa',d:'2026-09-15',h:'22:40',he:'22:53'},
+  {id:'pt_ev_2',m:'Língua Portuguesa',n:2,t:'Classes de Palavras',d:'2026-09-15',h:'22:54',he:'23:25'},
+  {id:'pt_ev_3',m:'Língua Inglesa',n:1,t:'Atualidade - Andragogia',d:'2026-09-15',h:'23:26',he:'23:40'},
+  {id:'pt_ev_4',m:'Língua Inglesa',n:1,t:'Atualidade - Andragogia',d:'2026-09-16',h:'18:30',he:'18:54'},
+  {id:'pt_ev_5',m:'Língua Inglesa',n:2,t:'Atualidade - Interlanguage',d:'2026-09-16',h:'18:55',he:'19:33'},
+  {id:'pt_ev_6',m:'Arquitetura de Dados',n:1,t:'Banco de Dados - Conceitos Iniciais',d:'2026-09-16',h:'19:34',he:'20:12'},
+  {id:'pt_ev_7',m:'Arquitetura de Dados',n:2,t:'Banco de Dados - Tipos de Usuários Linguagem e Arquitetura SGBDS',d:'2026-09-16',h:'20:13',he:'20:47'},
+  {id:'pt_ev_8',m:'Gerenciamento de Projetos e Produtos',n:1,t:'Manifesto Ágil',d:'2026-09-16',h:'20:48',he:'21:19'},
+  {id:'pt_ev_9',m:'Gerenciamento de Projetos e Produtos',n:2,t:'Manifesto Ágil - Exercícios',d:'2026-09-16',h:'21:20',he:'21:59'},
+  {id:'pt_ev_10',m:'Revisão',n:0,t:'Revisão',d:'2026-09-16',h:'22:00',he:'23:30'},
+  {id:'pt_ev_11',m:'Gestão e Governança em TI',n:1,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD',d:'2026-09-17',h:'18:30',he:'19:02'},
+  {id:'pt_ev_12',m:'Gestão e Governança em TI',n:2,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD II',d:'2026-09-17',h:'19:03',he:'19:40'},
+  {id:'pt_ev_13',m:'Engenharia de Software',n:1,t:'Engenharia de Software - Conceitos Gerais',d:'2026-09-17',h:'19:41',he:'20:15'},
+  {id:'pt_ev_14',m:'Engenharia de Software',n:2,t:'Engenharia de Software - Conceitos Gerais II',d:'2026-09-17',h:'20:16',he:'20:52'},
+  {id:'pt_ev_15',m:'User Experience (UX)',n:1,t:'Storytelling - Introdução',d:'2026-09-17',h:'20:53',he:'21:26'},
+  {id:'pt_ev_16',m:'User Experience (UX)',n:2,t:'Storytelling - Processo de Construção da História',d:'2026-09-17',h:'21:27',he:'21:59'},
+  {id:'pt_ev_17',m:'Revisão',n:0,t:'Revisão',d:'2026-09-17',h:'22:00',he:'23:30'},
+  {id:'pt_ev_18',m:'Análise de Dados e Informações',n:1,t:'Dado, Informação, Conhecimento e Inteligência',d:'2026-09-18',h:'18:30',he:'18:56'},
+  {id:'pt_ev_19',m:'Análise de Dados e Informações',n:1,t:'Business Intelligence - Introdução',d:'2026-09-18',h:'18:57',he:'19:34'},
+  {id:'pt_ev_20',m:'Lógica Matemática',n:1,t:'Lógica Proposicional Proposições, Tabela - Verdade',d:'2026-09-18',h:'19:35',he:'20:10'},
+  {id:'pt_ev_21',m:'Lógica Matemática',n:2,t:'Lógica Proposicional Proposições, Tabela - Verdade - Parte II',d:'2026-09-18',h:'20:11',he:'20:40'},
+  {id:'pt_ev_22',m:'Segurança da Informação',n:1,t:'Análise de Vulnerabilidades',d:'2026-09-18',h:'20:41',he:'21:19'},
+  {id:'pt_ev_23',m:'Segurança da Informação',n:2,t:'Análise de Vulnerabilidades II',d:'2026-09-18',h:'21:20',he:'21:58'},
+  {id:'pt_ev_24',m:'Bônus - Inteligência e Equilíbrio Emocional',n:1,t:'Os 50 Fundamentos Emocionais do Concurseiro',d:'2026-09-18',h:'21:59',he:'21:59'},
+  {id:'pt_ev_25',m:'Revisão',n:0,t:'Revisão',d:'2026-09-18',h:'22:00',he:'23:30'},
+  {id:'pt_ev_26',m:'Bônus - Inteligência e Equilíbrio Emocional',n:1,t:'Os 50 Fundamentos Emocionais do Concurseiro',d:'2026-09-19',h:'09:00',he:'09:24'},
+  {id:'pt_ev_27',m:'Bônus - Inteligência e Equilíbrio Emocional',n:2,t:'Protagonista, Coadjuvante e Antagonista - Quem é Você?',d:'2026-09-19',h:'09:25',he:'09:50'},
+  {id:'pt_ev_28',m:'Língua Portuguesa',n:3,t:'Classes de Palavras II',d:'2026-09-19',h:'09:51',he:'10:23'},
+  {id:'pt_ev_29',m:'Língua Portuguesa',n:4,t:'Morfossintaxe',d:'2026-09-19',h:'10:24',he:'10:58'},
+  {id:'pt_ev_30',m:'Língua Inglesa',n:3,t:'Atualidade - Learning a Second Language',d:'2026-09-19',h:'10:59',he:'11:38'},
+  {id:'pt_ev_31',m:'Língua Inglesa',n:4,t:'Atualidade - Offshore Englishi',d:'2026-09-19',h:'11:39',he:'12:00'},
+  {id:'pt_ev_32',m:'Língua Inglesa',n:4,t:'Atualidade - Offshore Englishi',d:'2026-09-19',h:'13:30',he:'13:47'},
+  {id:'pt_ev_33',m:'Arquitetura de Dados',n:3,t:'Banco de Dados - Projeto de BD',d:'2026-09-19',h:'13:48',he:'14:25'},
+  {id:'pt_ev_34',m:'Arquitetura de Dados',n:4,t:'Banco de Dados - Evolução dos BDS',d:'2026-09-19',h:'14:26',he:'15:03'},
+  {id:'pt_ev_35',m:'Gerenciamento de Projetos e Produtos',n:3,t:'Scrum - Conceitos Iniciais e Pilares do Scrum',d:'2026-09-19',h:'15:04',he:'15:37'},
+  {id:'pt_ev_36',m:'Gerenciamento de Projetos e Produtos',n:4,t:'Scrum - Papéis do Scrum I',d:'2026-09-19',h:'15:38',he:'16:12'},
+  {id:'pt_ev_37',m:'Gestão e Governança em TI',n:3,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD III',d:'2026-09-19',h:'16:13',he:'16:49'},
+  {id:'pt_ev_38',m:'Gestão e Governança em TI',n:4,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD IV',d:'2026-09-19',h:'16:50',he:'17:12'},
+  {id:'pt_ev_39',m:'Engenharia de Software',n:3,t:'Engenharia de Software - Conceitos Gerais III',d:'2026-09-19',h:'17:13',he:'17:49'},
+  {id:'pt_ev_40',m:'Engenharia de Software',n:4,t:'Engenharia de Software - Conceitos Gerais IV',d:'2026-09-19',h:'17:50',he:'18:28'},
+  {id:'pt_ev_41',m:'User Experience (UX)',n:3,t:'Storytelling - Narrativas',d:'2026-09-19',h:'18:29',he:'19:02'},
+  {id:'pt_ev_42',m:'User Experience (UX)',n:4,t:'Storytelling - Análises e Visuais',d:'2026-09-19',h:'19:03',he:'19:36'},
+  {id:'pt_ev_43',m:'Análise de Dados e Informações',n:2,t:'Business Intelligence - Componentes',d:'2026-09-19',h:'19:37',he:'19:56'},
+  {id:'pt_ev_44',m:'Análise de Dados e Informações',n:3,t:'Business Intelligence - Data Warehouse',d:'2026-09-19',h:'19:57',he:'20:37'},
+  {id:'pt_ev_45',m:'Lógica Matemática',n:3,t:'Lógica Proposicional Conectivos Lógicos - Parte I',d:'2026-09-19',h:'20:38',he:'21:15'},
+  {id:'pt_ev_46',m:'Lógica Matemática',n:4,t:'Lógica Proposicional Conectivos Lógicos - Parte II',d:'2026-09-19',h:'21:16',he:'21:30'},
+  {id:'pt_ev_47',m:'Revisão',n:0,t:'Revisão',d:'2026-09-19',h:'22:00',he:'23:30'},
+  {id:'pt_ev_48',m:'Lógica Matemática',n:4,t:'Lógica Proposicional Conectivos Lógicos - Parte II',d:'2026-09-20',h:'09:00',he:'09:16'},
+  {id:'pt_ev_49',m:'Segurança da Informação',n:3,t:'Testes de Segurança de Aplicações - SAST',d:'2026-09-20',h:'09:17',he:'09:39'},
+  {id:'pt_ev_50',m:'Segurança da Informação',n:4,t:'Testes de Segurança de Aplicações - DAST',d:'2026-09-20',h:'09:40',he:'10:00'},
+  {id:'pt_ev_51',m:'Bônus - Inteligência e Equilíbrio Emocional',n:3,t:'Os 50 Fundamentos Emocionais',d:'2026-09-20',h:'10:01',he:'10:20'},
+  {id:'pt_ev_52',m:'Bônus - Inteligência e Equilíbrio Emocional',n:4,t:'Autossabotagem',d:'2026-09-20',h:'10:21',he:'10:44'},
+  {id:'pt_ev_53',m:'Língua Portuguesa',n:5,t:'Regência',d:'2026-09-20',h:'10:45',he:'11:13'},
+  {id:'pt_ev_54',m:'Língua Portuguesa',n:6,t:'Cesgranrio na Prática - Regência',d:'2026-09-20',h:'11:14',he:'11:45'},
+  {id:'pt_ev_55',m:'Língua Inglesa',n:5,t:'Atualidade - The Microchip Revolution',d:'2026-09-20',h:'11:46',he:'12:00'},
+  {id:'pt_ev_56',m:'Língua Inglesa',n:5,t:'Atualidade - The Microchip Revolution',d:'2026-09-20',h:'13:30',he:'13:50'},
+  {id:'pt_ev_57',m:'Língua Inglesa',n:6,t:'Atualidade - Translation Pros And Cons',d:'2026-09-20',h:'13:51',he:'14:30'},
+  {id:'pt_ev_58',m:'Arquitetura de Dados',n:5,t:'Banco de Dados - MER (Modelo Entidade Relacionamento)',d:'2026-09-20',h:'14:31',he:'15:11'},
+  {id:'pt_ev_59',m:'Arquitetura de Dados',n:6,t:'Banco de Dados - MER: Relacionamento',d:'2026-09-20',h:'15:12',he:'15:49'},
+  {id:'pt_ev_60',m:'Gerenciamento de Projetos e Produtos',n:5,t:'Scrum - Papéis do Scrum II',d:'2026-09-20',h:'15:50',he:'16:23'},
+  {id:'pt_ev_61',m:'Gerenciamento de Projetos e Produtos',n:6,t:'Scrum - Eventos - P1',d:'2026-09-20',h:'16:24',he:'16:59'},
+  {id:'pt_ev_62',m:'Gestão e Governança em TI',n:5,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD V',d:'2026-09-20',h:'17:00',he:'17:32'},
+  {id:'pt_ev_63',m:'Gestão e Governança em TI',n:6,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD VI',d:'2026-09-20',h:'17:33',he:'18:03'},
+  {id:'pt_ev_64',m:'Engenharia de Software',n:5,t:'Engenharia de Software - RUP',d:'2026-09-20',h:'18:04',he:'18:39'},
+  {id:'pt_ev_65',m:'Engenharia de Software',n:6,t:'Engenharia de Software - RUP II',d:'2026-09-20',h:'18:40',he:'19:19'},
+  {id:'pt_ev_66',m:'User Experience (UX)',n:5,t:'Storytelling - Polimento da História',d:'2026-09-20',h:'19:20',he:'19:54'},
+  {id:'pt_ev_67',m:'User Experience (UX)',n:6,t:'Storytelling - Visuais',d:'2026-09-20',h:'19:55',he:'20:27'},
+  {id:'pt_ev_68',m:'Análise de Dados e Informações',n:4,t:'Business Intelligence - Data Mart e Olap',d:'2026-09-20',h:'20:28',he:'21:03'},
+  {id:'pt_ev_69',m:'Análise de Dados e Informações',n:5,t:'Business Intelligence - ETL',d:'2026-09-20',h:'21:04',he:'21:30'},
+  {id:'pt_ev_70',m:'Revisão',n:0,t:'Revisão',d:'2026-09-20',h:'22:00',he:'23:30'},
+  {id:'pt_ev_71',m:'Análise de Dados e Informações',n:5,t:'Business Intelligence - ETL',d:'2026-09-21',h:'18:30',he:'18:44'},
+  {id:'pt_ev_72',m:'Lógica Matemática',n:5,t:'Lógica Proposicional Conectivos Lógicos - Parte III',d:'2026-09-21',h:'18:45',he:'19:19'},
+  {id:'pt_ev_73',m:'Lógica Matemática',n:6,t:'Lógica Proposicional Conectivos Lógicos - Parte IV',d:'2026-09-21',h:'19:20',he:'19:38'},
+  {id:'pt_ev_74',m:'Segurança da Informação',n:5,t:'Testes de Segurança de Aplicações - IAST',d:'2026-09-21',h:'19:39',he:'19:56'},
+  {id:'pt_ev_75',m:'Segurança da Informação',n:1,t:'Tecnologias de Backup',d:'2026-09-21',h:'19:57',he:'20:36'},
+  {id:'pt_ev_76',m:'Bônus - Inteligência e Equilíbrio Emocional',n:5,t:'Procrastinação',d:'2026-09-21',h:'20:37',he:'20:58'},
+  {id:'pt_ev_77',m:'Bônus - Inteligência e Equilíbrio Emocional',n:6,t:'Procrastinação II',d:'2026-09-21',h:'20:59',he:'21:11'},
+  {id:'pt_ev_78',m:'Língua Portuguesa',n:7,t:'Cesgranrio na Prática - Crase',d:'2026-09-21',h:'21:12',he:'21:34'},
+  {id:'pt_ev_79',m:'Língua Portuguesa',n:8,t:'Cesgranrio na Prática - Crase',d:'2026-09-21',h:'21:35',he:'21:59'},
+  {id:'pt_ev_80',m:'Revisão',n:0,t:'Revisão',d:'2026-09-21',h:'22:00',he:'23:30'},
+  {id:'pt_ev_81',m:'Revisão',n:0,t:'Revisão',d:'2026-09-22',h:'22:00',he:'23:30'},
+  {id:'pt_ev_82',m:'Língua Portuguesa',n:8,t:'Cesgranrio na Prática - Crase',d:'2026-09-22',h:'23:31',he:'23:38'},
+  {id:'pt_ev_83',m:'Língua Inglesa',n:7,t:'Atualidade - Windows XP',d:'2026-09-22',h:'23:39',he:'23:40'},
+  {id:'pt_ev_84',m:'Língua Inglesa',n:7,t:'Atualidade - Windows XP',d:'2026-09-23',h:'18:30',he:'19:06'},
+  {id:'pt_ev_85',m:'Língua Inglesa',n:8,t:'A Coup In Paraguay',d:'2026-09-23',h:'19:07',he:'19:46'},
+  {id:'pt_ev_86',m:'Arquitetura de Dados',n:7,t:'Banco de Dados - Modelo Entidade Relacionamento Estendido (ERE)',d:'2026-09-23',h:'19:47',he:'20:25'},
+  {id:'pt_ev_87',m:'Arquitetura de Dados',n:8,t:'Banco de Dados - Modelo Relacional',d:'2026-09-23',h:'20:26',he:'21:05'},
+  {id:'pt_ev_88',m:'Gerenciamento de Projetos e Produtos',n:7,t:'Scrum - Eventos - P2',d:'2026-09-23',h:'21:06',he:'21:35'},
+  {id:'pt_ev_89',m:'Gerenciamento de Projetos e Produtos',n:8,t:'Artefatos do Scrum',d:'2026-09-23',h:'21:36',he:'21:59'},
+  {id:'pt_ev_90',m:'Revisão',n:0,t:'Revisão',d:'2026-09-23',h:'22:00',he:'23:30'},
+  {id:'pt_ev_91',m:'Gerenciamento de Projetos e Produtos',n:8,t:'Artefatos do Scrum',d:'2026-09-24',h:'18:30',he:'18:42'},
+  {id:'pt_ev_92',m:'Gestão e Governança em TI',n:7,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD VII',d:'2026-09-24',h:'18:43',he:'19:02'},
+  {id:'pt_ev_93',m:'Gestão e Governança em TI',n:8,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD VIII',d:'2026-09-24',h:'19:03',he:'19:33'},
+  {id:'pt_ev_94',m:'Engenharia de Software',n:7,t:'Engenharia de Software - Requisitos',d:'2026-09-24',h:'19:34',he:'20:19'},
+  {id:'pt_ev_95',m:'Engenharia de Software',n:8,t:'Engenharia de Software - Requisitos II',d:'2026-09-24',h:'20:20',he:'20:55'},
+  {id:'pt_ev_96',m:'User Experience (UX)',n:7,t:'Storytelling - Visuais II',d:'2026-09-24',h:'20:56',he:'21:29'},
+  {id:'pt_ev_97',m:'User Experience (UX)',n:8,t:'Storytelling - Visuais III',d:'2026-09-24',h:'21:30',he:'21:59'},
+  {id:'pt_ev_98',m:'Revisão',n:0,t:'Revisão',d:'2026-09-24',h:'22:00',he:'23:30'},
+  {id:'pt_ev_99',m:'User Experience (UX)',n:8,t:'Storytelling - Visuais III',d:'2026-09-25',h:'18:30',he:'18:38'},
+  {id:'pt_ev_100',m:'Análise de Dados e Informações',n:6,t:'Business Intelligence - ETL II',d:'2026-09-25',h:'18:39',he:'18:59'},
+  {id:'pt_ev_101',m:'Análise de Dados e Informações',n:7,t:'Business Intelligence - Modelo Dimensional - Teoria',d:'2026-09-25',h:'19:00',he:'19:28'},
+  {id:'pt_ev_102',m:'Lógica Matemática',n:7,t:'Lógica Proposicional Conectivos Lógicos - Parte V',d:'2026-09-25',h:'19:29',he:'20:02'},
+  {id:'pt_ev_103',m:'Lógica Matemática',n:8,t:'Lógica Proposicional Conectivos Lógicos - Parte VI',d:'2026-09-25',h:'20:03',he:'20:37'},
+  {id:'pt_ev_104',m:'Segurança da Informação',n:1,t:'Engenharia Reversa de Software - Análise Estática, Dinâmica e Post - Mortem',d:'2026-09-25',h:'20:38',he:'21:15'},
+  {id:'pt_ev_105',m:'Segurança da Informação',n:2,t:'Engenharia Reversa de Software - Análise Híbrida e Antianálise',d:'2026-09-25',h:'21:16',he:'21:31'},
+  {id:'pt_ev_106',m:'Língua Portuguesa',n:9,t:'Cesgranrio na Prática - Crase e Período Composto',d:'2026-09-25',h:'21:32',he:'21:59'},
+  {id:'pt_ev_107',m:'Revisão',n:0,t:'Revisão',d:'2026-09-25',h:'22:00',he:'23:30'},
+  {id:'pt_ev_108',m:'Língua Portuguesa',n:9,t:'Cesgranrio na Prática - Crase e Período Composto',d:'2026-09-26',h:'09:00',he:'09:05'},
+  {id:'pt_ev_109',m:'Língua Portuguesa',n:10,t:'Cesgranrio na Prática - Pronome Relativo \"QUE\"',d:'2026-09-26',h:'09:06',he:'09:37'},
+  {id:'pt_ev_110',m:'Língua Inglesa',n:9,t:'Augmentation Of Brain Function Facts',d:'2026-09-26',h:'09:38',he:'10:17'},
+  {id:'pt_ev_111',m:'Língua Inglesa',n:10,t:'Brazilian Rate Cut Catches Markets Off Guard',d:'2026-09-26',h:'10:18',he:'10:55'},
+  {id:'pt_ev_112',m:'Arquitetura de Dados',n:9,t:'Banco de Dados - Mapeamento ER Relacional',d:'2026-09-26',h:'10:56',he:'11:31'},
+  {id:'pt_ev_113',m:'Arquitetura de Dados',n:10,t:'Banco de Dados - Mapeamento ER Relacional II',d:'2026-09-26',h:'11:32',he:'12:00'},
+  {id:'pt_ev_114',m:'Arquitetura de Dados',n:10,t:'Banco de Dados - Mapeamento ER Relacional II',d:'2026-09-26',h:'13:30',he:'13:36'},
+  {id:'pt_ev_115',m:'Gerenciamento de Projetos e Produtos',n:9,t:'Artefatos do Scrum II',d:'2026-09-26',h:'13:37',he:'14:08'},
+  {id:'pt_ev_116',m:'Gerenciamento de Projetos e Produtos',n:10,t:'Scrum - Exercícios Complementares',d:'2026-09-26',h:'14:09',he:'14:49'},
+  {id:'pt_ev_117',m:'Gestão e Governança em TI',n:9,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD IX',d:'2026-09-26',h:'14:50',he:'15:13'},
+  {id:'pt_ev_118',m:'Gestão e Governança em TI',n:10,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD X',d:'2026-09-26',h:'15:14',he:'15:32'},
+  {id:'pt_ev_119',m:'Engenharia de Software',n:9,t:'Engenharia de Software - Requisitos III',d:'2026-09-26',h:'15:33',he:'16:06'},
+  {id:'pt_ev_120',m:'Engenharia de Software',n:10,t:'Engenharia de Software - Requisitos IV',d:'2026-09-26',h:'16:07',he:'16:39'},
+  {id:'pt_ev_121',m:'User Experience (UX)',n:1,t:'Design Thinking - Introdução',d:'2026-09-26',h:'16:40',he:'17:15'},
+  {id:'pt_ev_122',m:'User Experience (UX)',n:2,t:'Design Thinking - Introdução II',d:'2026-09-26',h:'17:16',he:'17:49'},
+  {id:'pt_ev_123',m:'Análise de Dados e Informações',n:8,t:'Business Intelligence - Modelo Dimensional - Questões de concurso',d:'2026-09-26',h:'17:50',he:'18:15'},
+  {id:'pt_ev_124',m:'Análise de Dados e Informações',n:9,t:'Business Intelligence - Modelo Dimensional - Questões de concurso II',d:'2026-09-26',h:'18:16',he:'18:39'},
+  {id:'pt_ev_125',m:'Lógica Matemática',n:9,t:'Lógica Proposicional - Negação dos Conectivos',d:'2026-09-26',h:'18:40',he:'19:15'},
+  {id:'pt_ev_126',m:'Lógica Matemática',n:10,t:'Lógica Proposicional - Negação dos Conectivos II',d:'2026-09-26',h:'19:16',he:'19:49'},
+  {id:'pt_ev_127',m:'Segurança da Informação',n:3,t:'Engenharia Reversa de Software - Análise Dinâmica - Avançado',d:'2026-09-26',h:'19:50',he:'20:15'},
+  {id:'pt_ev_128',m:'Segurança da Informação',n:4,t:'Engenharia Reversa de Software - Ofuscação',d:'2026-09-26',h:'20:16',he:'20:31'},
+  {id:'pt_ev_129',m:'Língua Portuguesa',n:11,t:'Cesgranrio na Prática - Orações Subordinadas (Pronomes Relativos)',d:'2026-09-26',h:'20:32',he:'21:04'},
+  {id:'pt_ev_130',m:'Língua Portuguesa',n:12,t:'Cesgranrio na Prática - Orações Subordinadas (Pronomes Relativos) II',d:'2026-09-26',h:'21:05',he:'21:30'},
+  {id:'pt_ev_131',m:'Revisão',n:0,t:'Revisão',d:'2026-09-26',h:'22:00',he:'23:30'},
+  {id:'pt_ev_132',m:'Língua Portuguesa',n:12,t:'Cesgranrio na Prática - Orações Subordinadas (Pronomes Relativos) II',d:'2026-09-27',h:'09:00',he:'09:08'},
+  {id:'pt_ev_133',m:'Língua Inglesa',n:11,t:'Brazilian Rate Cut Catches Markets Off Guard II',d:'2026-09-27',h:'09:09',he:'09:50'},
+  {id:'pt_ev_134',m:'Língua Inglesa',n:12,t:'Conversations And Focus On Sustainability - Part A',d:'2026-09-27',h:'09:51',he:'10:29'},
+  {id:'pt_ev_135',m:'Arquitetura de Dados',n:11,t:'Banco de Dados - Normalização',d:'2026-09-27',h:'10:30',he:'11:04'},
+  {id:'pt_ev_136',m:'Arquitetura de Dados',n:12,t:'Banco de Dados - Normalização II',d:'2026-09-27',h:'11:05',he:'11:40'},
+  {id:'pt_ev_137',m:'Gerenciamento de Projetos e Produtos',n:11,t:'Kanban',d:'2026-09-27',h:'11:41',he:'12:00'},
+  {id:'pt_ev_138',m:'Gerenciamento de Projetos e Produtos',n:11,t:'Kanban',d:'2026-09-27',h:'13:30',he:'13:47'},
+  {id:'pt_ev_139',m:'Gerenciamento de Projetos e Produtos',n:12,t:'Kanban II',d:'2026-09-27',h:'13:48',he:'14:23'},
+  {id:'pt_ev_140',m:'Gestão e Governança em TI',n:11,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XI',d:'2026-09-27',h:'14:24',he:'14:42'},
+  {id:'pt_ev_141',m:'Gestão e Governança em TI',n:12,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XII',d:'2026-09-27',h:'14:43',he:'15:18'},
+  {id:'pt_ev_142',m:'Engenharia de Software',n:11,t:'Engenharia de Software - Requisitos V',d:'2026-09-27',h:'15:19',he:'15:43'},
+  {id:'pt_ev_143',m:'Engenharia de Software',n:12,t:'Engenharia de Software - Requisitos VI',d:'2026-09-27',h:'15:44',he:'16:11'},
+  {id:'pt_ev_144',m:'User Experience (UX)',n:3,t:'Design Thinking - Introdução III',d:'2026-09-27',h:'16:12',he:'16:45'},
+  {id:'pt_ev_145',m:'User Experience (UX)',n:4,t:'Design Thinking - Empatizar - O Coração do Design',d:'2026-09-27',h:'16:46',he:'17:18'},
+  {id:'pt_ev_146',m:'Análise de Dados e Informações',n:10,t:'Business Intelligence - Operações OLAP',d:'2026-09-27',h:'17:19',he:'17:49'},
+  {id:'pt_ev_147',m:'Análise de Dados e Informações',n:11,t:'Business Intelligence - Power BI',d:'2026-09-27',h:'17:50',he:'18:12'},
+  {id:'pt_ev_148',m:'Lógica Matemática',n:11,t:'Lógica Proposicional - Equivalências Lógicas',d:'2026-09-27',h:'18:13',he:'18:49'},
+  {id:'pt_ev_149',m:'Lógica Matemática',n:12,t:'Lógica Proposicional - Equivalências Lógicas II',d:'2026-09-27',h:'18:50',he:'19:27'},
+  {id:'pt_ev_150',m:'Segurança da Informação',n:5,t:'Engenharia Reversa de Software - Descompilação de Programas',d:'2026-09-27',h:'19:28',he:'19:45'},
+  {id:'pt_ev_151',m:'Segurança da Informação',n:6,t:'Engenharia Reversa de Software - Debuggers',d:'2026-09-27',h:'19:46',he:'19:57'},
+  {id:'pt_ev_152',m:'Língua Portuguesa',n:13,t:'Cesgranrio na Prática - Pronome Relativo e Conjunções Subordinativas',d:'2026-09-27',h:'19:58',he:'20:26'},
+  {id:'pt_ev_153',m:'Língua Portuguesa',n:14,t:'Cesgranrio na Prática - Conjunções Subordinativas/Coordenativas',d:'2026-09-27',h:'20:27',he:'20:59'},
+  {id:'pt_ev_154',m:'Língua Inglesa',n:13,t:'Conversations And Focus On Sustainability - Part B',d:'2026-09-27',h:'21:00',he:'21:30'},
+  {id:'pt_ev_155',m:'Revisão',n:0,t:'Revisão',d:'2026-09-27',h:'22:00',he:'23:30'},
+  {id:'pt_ev_156',m:'Língua Inglesa',n:13,t:'Conversations And Focus On Sustainability - Part B',d:'2026-09-28',h:'18:30',he:'18:41'},
+  {id:'pt_ev_157',m:'Língua Inglesa',n:14,t:'Cyber - Cafés',d:'2026-09-28',h:'18:42',he:'19:18'},
+  {id:'pt_ev_158',m:'Arquitetura de Dados',n:13,t:'Banco de Dados - Normalização - Exercícios',d:'2026-09-28',h:'19:19',he:'19:47'},
+  {id:'pt_ev_159',m:'Arquitetura de Dados',n:14,t:'Banco de Dados - Normalização 4FN e 5FN',d:'2026-09-28',h:'19:48',he:'20:17'},
+  {id:'pt_ev_160',m:'Gerenciamento de Projetos e Produtos',n:13,t:'Kanban III',d:'2026-09-28',h:'20:18',he:'20:57'},
+  {id:'pt_ev_161',m:'Gerenciamento de Projetos e Produtos',n:14,t:'Kanban -  Exercícios Complementares',d:'2026-09-28',h:'20:58',he:'21:25'},
+  {id:'pt_ev_162',m:'Gestão e Governança em TI',n:13,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIII',d:'2026-09-28',h:'21:26',he:'21:52'},
+  {id:'pt_ev_163',m:'Gestão e Governança em TI',n:14,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIV',d:'2026-09-28',h:'21:53',he:'21:59'},
+  {id:'pt_ev_164',m:'Revisão',n:0,t:'Revisão',d:'2026-09-28',h:'22:00',he:'23:30'},
+  {id:'pt_ev_165',m:'Revisão',n:0,t:'Revisão',d:'2026-09-29',h:'22:00',he:'23:30'},
+  {id:'pt_ev_166',m:'Gestão e Governança em TI',n:14,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIV',d:'2026-09-29',h:'23:31',he:'23:40'},
+  {id:'pt_ev_167',m:'Gestão e Governança em TI',n:14,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIV',d:'2026-09-30',h:'18:30',he:'18:44'},
+  {id:'pt_ev_168',m:'Engenharia de Software',n:13,t:'Engenharia de Software - Requisitos VII',d:'2026-09-30',h:'18:45',he:'19:18'},
+  {id:'pt_ev_169',m:'Engenharia de Software',n:14,t:'Engenharia de Software - Estágio de Teste',d:'2026-09-30',h:'19:19',he:'19:55'},
+  {id:'pt_ev_170',m:'User Experience (UX)',n:5,t:'Design Thinking - Empatizar - O Coração do Design II',d:'2026-09-30',h:'19:56',he:'20:29'},
+  {id:'pt_ev_171',m:'User Experience (UX)',n:6,t:'Design Thinking - Empatizar - O Coração do Design III',d:'2026-09-30',h:'20:30',he:'21:03'},
+  {id:'pt_ev_172',m:'Análise de Dados e Informações',n:12,t:'Business Intelligence - Power BI - Desktop',d:'2026-09-30',h:'21:04',he:'21:34'},
+  {id:'pt_ev_173',m:'Análise de Dados e Informações',n:13,t:'Business Intelligence - Power BI - Serviços',d:'2026-09-30',h:'21:35',he:'21:51'},
+  {id:'pt_ev_174',m:'Lógica Matemática',n:13,t:'Lógica Proposicional - Equivalências Lógicas III',d:'2026-09-30',h:'21:52',he:'21:59'},
+  {id:'pt_ev_175',m:'Revisão',n:0,t:'Revisão',d:'2026-09-30',h:'22:00',he:'23:30'},
+  {id:'pt_ev_176',m:'Lógica Matemática',n:13,t:'Lógica Proposicional - Equivalências Lógicas III',d:'2026-10-01',h:'18:30',he:'18:56'},
+  {id:'pt_ev_177',m:'Lógica Matemática',n:14,t:'Lógica Proposicional - Classificação da Tabela Verdade',d:'2026-10-01',h:'18:57',he:'19:30'},
+  {id:'pt_ev_178',m:'Segurança da Informação',n:7,t:'Engenharia Reversa de Software - Indicadores de Comprometimento (IOCs)',d:'2026-10-01',h:'19:31',he:'19:49'},
+  {id:'pt_ev_179',m:'Segurança da Informação',n:8,t:'Engenharia Reversa de Software - Malware Polimórfico',d:'2026-10-01',h:'19:50',he:'20:12'},
+  {id:'pt_ev_180',m:'Língua Portuguesa',n:15,t:'Cesgranrio na Prática - Conjunções Subordinativas/Coordenativas II',d:'2026-10-01',h:'20:13',he:'20:47'},
+  {id:'pt_ev_181',m:'Língua Portuguesa',n:16,t:'Cesgranrio na Prática - Conjunções Subordinativas e Coordenativas/Colocação Pronominal',d:'2026-10-01',h:'20:48',he:'21:14'},
+  {id:'pt_ev_182',m:'Língua Inglesa',n:15,t:'Cyber - Ethics',d:'2026-10-01',h:'21:15',he:'21:52'},
+  {id:'pt_ev_183',m:'Língua Inglesa',n:16,t:'Despite Being The Eighth Largest Economy',d:'2026-10-01',h:'21:53',he:'21:59'},
+  {id:'pt_ev_184',m:'Revisão',n:0,t:'Revisão',d:'2026-10-01',h:'22:00',he:'23:30'},
+  {id:'pt_ev_185',m:'Língua Inglesa',n:16,t:'Despite Being The Eighth Largest Economy',d:'2026-10-02',h:'18:30',he:'18:59'},
+  {id:'pt_ev_186',m:'Arquitetura de Dados',n:15,t:'Banco de Dados - Linguagem SQL',d:'2026-10-02',h:'19:00',he:'19:34'},
+  {id:'pt_ev_187',m:'Arquitetura de Dados',n:16,t:'Banco de Dados - Linguagem SQL II',d:'2026-10-02',h:'19:35',he:'20:04'},
+  {id:'pt_ev_188',m:'Gerenciamento de Projetos e Produtos',n:15,t:'Lean - Pensamento Enxuto',d:'2026-10-02',h:'20:05',he:'20:45'},
+  {id:'pt_ev_189',m:'Gerenciamento de Projetos e Produtos',n:16,t:'Lean - Pensamento Enxuto II',d:'2026-10-02',h:'20:46',he:'21:20'},
+  {id:'pt_ev_190',m:'Gestão e Governança em TI',n:15,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XV',d:'2026-10-02',h:'21:21',he:'21:35'},
+  {id:'pt_ev_191',m:'Gestão e Governança em TI',n:16,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XVI',d:'2026-10-02',h:'21:36',he:'21:59'},
+  {id:'pt_ev_192',m:'Revisão',n:0,t:'Revisão',d:'2026-10-02',h:'22:00',he:'23:30'},
+  {id:'pt_ev_193',m:'Gestão e Governança em TI',n:16,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XVI',d:'2026-10-03',h:'09:00',he:'09:19'},
+  {id:'pt_ev_194',m:'Engenharia de Software',n:15,t:'Engenharia de Software - Estágio de Teste II',d:'2026-10-03',h:'09:20',he:'09:45'},
+  {id:'pt_ev_195',m:'Engenharia de Software',n:16,t:'Engenharia de Software - Estágio de Teste III',d:'2026-10-03',h:'09:46',he:'10:10'},
+  {id:'pt_ev_196',m:'User Experience (UX)',n:7,t:'Design Thinking - Ideação',d:'2026-10-03',h:'10:11',he:'10:44'},
+  {id:'pt_ev_197',m:'User Experience (UX)',n:8,t:'Design Thinking - Prototipagem',d:'2026-10-03',h:'10:45',he:'11:19'},
+  {id:'pt_ev_198',m:'Análise de Dados e Informações',n:14,t:'Business Intelligence - Tomada de Decisão Baseada em Dados Introdução',d:'2026-10-03',h:'11:20',he:'11:49'},
+  {id:'pt_ev_199',m:'Análise de Dados e Informações',n:15,t:'Business Intelligence - BI e SSD',d:'2026-10-03',h:'11:50',he:'12:00'},
+  {id:'pt_ev_200',m:'Análise de Dados e Informações',n:15,t:'Business Intelligence - BI e SSD',d:'2026-10-03',h:'13:30',he:'13:55'},
+  {id:'pt_ev_201',m:'Lógica Matemática',n:15,t:'Diagramas Lógicos - Quantificadores',d:'2026-10-03',h:'13:56',he:'14:29'},
+  {id:'pt_ev_202',m:'Lógica Matemática',n:16,t:'Lógica Proposicional Diagramas Lógicos - Quantificadores II',d:'2026-10-03',h:'14:30',he:'15:06'},
+  {id:'pt_ev_203',m:'Segurança da Informação',n:9,t:'Engenharia Reversa de Software - Técnicas de Sandboxing',d:'2026-10-03',h:'15:07',he:'15:26'},
+  {id:'pt_ev_204',m:'Segurança da Informação',n:1,t:'EDR e XDR',d:'2026-10-03',h:'15:27',he:'15:56'},
+  {id:'pt_ev_205',m:'Língua Portuguesa',n:17,t:'Cesgranrio na Prática - Colocação Pronominal',d:'2026-10-03',h:'15:57',he:'16:27'},
+  {id:'pt_ev_206',m:'Língua Portuguesa',n:18,t:'Cesgranrio na Prática - Vozes Verbais',d:'2026-10-03',h:'16:28',he:'17:00'},
+  {id:'pt_ev_207',m:'Língua Inglesa',n:17,t:'Despite Technology Advancements',d:'2026-10-03',h:'17:01',he:'17:37'},
+  {id:'pt_ev_208',m:'Língua Inglesa',n:18,t:'Election Fears Harm Brazilian Economy',d:'2026-10-03',h:'17:38',he:'18:18'},
+  {id:'pt_ev_209',m:'Arquitetura de Dados',n:17,t:'Banco de Dados - Linguagem SQL III',d:'2026-10-03',h:'18:19',he:'18:47'},
+  {id:'pt_ev_210',m:'Arquitetura de Dados',n:18,t:'Banco de Dados - Linguagem SQL IV',d:'2026-10-03',h:'18:48',he:'19:17'},
+  {id:'pt_ev_211',m:'Gerenciamento de Projetos e Produtos',n:17,t:'Lean - Pensamento Enxuto III',d:'2026-10-03',h:'19:18',he:'19:43'},
+  {id:'pt_ev_212',m:'Gerenciamento de Projetos e Produtos',n:18,t:'Extreme Programming XP',d:'2026-10-03',h:'19:44',he:'20:18'},
+  {id:'pt_ev_213',m:'Gestão e Governança em TI',n:17,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XVII',d:'2026-10-03',h:'20:19',he:'20:41'},
+  {id:'pt_ev_214',m:'Gestão e Governança em TI',n:18,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XVIII',d:'2026-10-03',h:'20:42',he:'21:12'},
+  {id:'pt_ev_215',m:'Engenharia de Software',n:17,t:'Engenharia de Software - Estágio de Teste IV',d:'2026-10-03',h:'21:13',he:'21:30'},
+  {id:'pt_ev_216',m:'Revisão',n:0,t:'Revisão',d:'2026-10-03',h:'22:00',he:'23:30'},
+  {id:'pt_ev_217',m:'Engenharia de Software',n:17,t:'Engenharia de Software - Estágio de Teste IV',d:'2026-10-04',h:'09:00',he:'09:15'},
+  {id:'pt_ev_218',m:'Engenharia de Software',n:18,t:'Engenharia de Software - Estágio de Teste V',d:'2026-10-04',h:'09:16',he:'09:52'},
+  {id:'pt_ev_219',m:'User Experience (UX)',n:1,t:'ATENÇÃO! Assunto abordado na disciplina Análise de Dados e Informações',d:'2026-10-04',h:'09:53',he:'10:23'},
+  {id:'pt_ev_220',m:'Análise de Dados e Informações',n:16,t:'Business Intelligence - BI 3.0',d:'2026-10-04',h:'10:24',he:'10:53'},
+  {id:'pt_ev_221',m:'Análise de Dados e Informações',n:17,t:'Visualização de Dados - Introdução',d:'2026-10-04',h:'10:54',he:'11:24'},
+  {id:'pt_ev_222',m:'Lógica Matemática',n:17,t:'Lógica Proposicional - Negação dos Quantificadores',d:'2026-10-04',h:'11:25',he:'11:56'},
+  {id:'pt_ev_223',m:'Lógica Matemática',n:18,t:'Lógica Proposicional - Argumentos',d:'2026-10-04',h:'11:57',he:'12:00'},
+  {id:'pt_ev_224',m:'Lógica Matemática',n:18,t:'Lógica Proposicional - Argumentos',d:'2026-10-04',h:'13:30',he:'14:05'},
+  {id:'pt_ev_225',m:'Segurança da Informação',n:2,t:'EDR e XDR II',d:'2026-10-04',h:'14:06',he:'14:36'},
+  {id:'pt_ev_226',m:'Segurança da Informação',n:3,t:'EDR e XDR III',d:'2026-10-04',h:'14:37',he:'15:09'},
+  {id:'pt_ev_227',m:'Língua Portuguesa',n:19,t:'Cesgranrio na Prática - Concordância',d:'2026-10-04',h:'15:10',he:'15:38'},
+  {id:'pt_ev_228',m:'Língua Portuguesa',n:20,t:'Cesgranrio na Prática - Concordância II',d:'2026-10-04',h:'15:39',he:'16:09'},
+  {id:'pt_ev_229',m:'Língua Inglesa',n:19,t:'Eu Law Taxes Overseas Net Firms',d:'2026-10-04',h:'16:10',he:'16:49'},
+  {id:'pt_ev_230',m:'Língua Inglesa',n:20,t:'Food Control Systems',d:'2026-10-04',h:'16:50',he:'17:28'},
+  {id:'pt_ev_231',m:'Arquitetura de Dados',n:19,t:'Banco de Dados - Linguagem SQL - V',d:'2026-10-04',h:'17:29',he:'17:58'},
+  {id:'pt_ev_232',m:'Arquitetura de Dados',n:20,t:'Banco de Dados - Linguagem SQL - VI',d:'2026-10-04',h:'17:59',he:'18:33'},
+  {id:'pt_ev_233',m:'Gerenciamento de Projetos e Produtos',n:19,t:'Extreme Programming XP II',d:'2026-10-04',h:'18:34',he:'19:07'},
+  {id:'pt_ev_234',m:'Gerenciamento de Projetos e Produtos',n:20,t:'Extreme Programming XP III',d:'2026-10-04',h:'19:08',he:'19:46'},
+  {id:'pt_ev_235',m:'Gestão e Governança em TI',n:19,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XIX',d:'2026-10-04',h:'19:47',he:'20:24'},
+  {id:'pt_ev_236',m:'Gestão e Governança em TI',n:20,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XX',d:'2026-10-04',h:'20:25',he:'20:41'},
+  {id:'pt_ev_237',m:'Engenharia de Software',n:19,t:'Engenharia de Software - Estágio de Teste VI',d:'2026-10-04',h:'20:42',he:'21:10'},
+  {id:'pt_ev_238',m:'Engenharia de Software',n:20,t:'Engenharia de Software - Estágio de Teste VII',d:'2026-10-04',h:'21:11',he:'21:30'},
+  {id:'pt_ev_239',m:'Revisão',n:0,t:'Revisão',d:'2026-10-04',h:'22:00',he:'23:30'},
+  {id:'pt_ev_240',m:'Engenharia de Software',n:20,t:'Engenharia de Software - Estágio de Teste VII',d:'2026-10-05',h:'18:30',he:'18:43'},
+  {id:'pt_ev_241',m:'Análise de Dados e Informações',n:18,t:'Visualização de Dados II',d:'2026-10-05',h:'18:44',he:'19:20'},
+  {id:'pt_ev_242',m:'Análise de Dados e Informações',n:19,t:'Visualização de Dados III',d:'2026-10-05',h:'19:21',he:'19:48'},
+  {id:'pt_ev_243',m:'Lógica Matemática',n:19,t:'Lógica Proposicional - Argumentos II',d:'2026-10-05',h:'19:49',he:'20:21'},
+  {id:'pt_ev_244',m:'Lógica Matemática',n:20,t:'Lógica Proposicional - Argumentos III',d:'2026-10-05',h:'20:22',he:'20:54'},
+  {id:'pt_ev_245',m:'Segurança da Informação',n:1,t:'Desenvolvimento Seguro - CLASP',d:'2026-10-05',h:'20:55',he:'21:20'},
+  {id:'pt_ev_246',m:'Segurança da Informação',n:2,t:'Desenvolvimento Seguro - OWASP',d:'2026-10-05',h:'21:21',he:'21:59'},
+  {id:'pt_ev_247',m:'Revisão',n:0,t:'Revisão',d:'2026-10-05',h:'22:00',he:'23:30'},
+  {id:'pt_ev_248',m:'Revisão',n:0,t:'Revisão',d:'2026-10-06',h:'22:00',he:'23:30'},
+  {id:'pt_ev_249',m:'Língua Portuguesa',n:21,t:'Cesgranrio na Prática - Interpretação de Texto (Exercícios)',d:'2026-10-06',h:'23:31',he:'23:40'},
+  {id:'pt_ev_250',m:'Língua Portuguesa',n:21,t:'Cesgranrio na Prática - Interpretação de Texto (Exercícios)',d:'2026-10-07',h:'18:30',he:'18:49'},
+  {id:'pt_ev_251',m:'Língua Portuguesa',n:22,t:'Cesgranrio na Prática - Interpretação de Texto (Exercícios)',d:'2026-10-07',h:'18:50',he:'19:22'},
+  {id:'pt_ev_252',m:'Língua Inglesa',n:21,t:'German Counter - intelligence',d:'2026-10-07',h:'19:23',he:'20:01'},
+  {id:'pt_ev_253',m:'Língua Inglesa',n:22,t:'Have You Been Greenwashed',d:'2026-10-07',h:'20:02',he:'20:38'},
+  {id:'pt_ev_254',m:'Arquitetura de Dados',n:21,t:'Banco de Dados - Linguagem SQL - VII',d:'2026-10-07',h:'20:39',he:'21:01'},
+  {id:'pt_ev_255',m:'Arquitetura de Dados',n:22,t:'Banco de Dados - Linguagem SQL - VIII',d:'2026-10-07',h:'21:02',he:'21:36'},
+  {id:'pt_ev_256',m:'Gerenciamento de Projetos e Produtos',n:21,t:'Extreme Programming XP IV',d:'2026-10-07',h:'21:37',he:'21:59'},
+  {id:'pt_ev_257',m:'Revisão',n:0,t:'Revisão',d:'2026-10-07',h:'22:00',he:'23:30'},
+  {id:'pt_ev_258',m:'Gerenciamento de Projetos e Produtos',n:21,t:'Extreme Programming XP IV',d:'2026-10-08',h:'18:30',he:'18:43'},
+  {id:'pt_ev_259',m:'Gerenciamento de Projetos e Produtos',n:22,t:'Práticas Ágeis Em Escala - SAFE',d:'2026-10-08',h:'18:44',he:'19:15'},
+  {id:'pt_ev_260',m:'Gestão e Governança em TI',n:21,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXI',d:'2026-10-08',h:'19:16',he:'19:46'},
+  {id:'pt_ev_261',m:'Gestão e Governança em TI',n:22,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXII',d:'2026-10-08',h:'19:47',he:'20:12'},
+  {id:'pt_ev_262',m:'Engenharia de Software',n:21,t:'Engenharia de Software - Estágio de Teste VIII',d:'2026-10-08',h:'20:13',he:'20:41'},
+  {id:'pt_ev_263',m:'Engenharia de Software',n:22,t:'Engenharia de Software - Estágio de Teste IX',d:'2026-10-08',h:'20:42',he:'21:04'},
+  {id:'pt_ev_264',m:'Análise de Dados e Informações',n:20,t:'Visualização de Dados IV',d:'2026-10-08',h:'21:05',he:'21:33'},
+  {id:'pt_ev_265',m:'Análise de Dados e Informações',n:21,t:'Visualização de Dados V',d:'2026-10-08',h:'21:34',he:'21:51'},
+  {id:'pt_ev_266',m:'Lógica Matemática',n:21,t:'Lógica Proposicional - Argumentos IV',d:'2026-10-08',h:'21:52',he:'21:59'},
+  {id:'pt_ev_267',m:'Revisão',n:0,t:'Revisão',d:'2026-10-08',h:'22:00',he:'23:30'},
+  {id:'pt_ev_268',m:'Lógica Matemática',n:21,t:'Lógica Proposicional - Argumentos IV',d:'2026-10-09',h:'18:30',he:'18:43'},
+  {id:'pt_ev_269',m:'Lógica Matemática',n:22,t:'Lógica Proposicional Simulado',d:'2026-10-09',h:'18:44',he:'19:14'},
+  {id:'pt_ev_270',m:'Segurança da Informação',n:3,t:'Desenvolvimento Seguro - OWASP II',d:'2026-10-09',h:'19:15',he:'19:48'},
+  {id:'pt_ev_271',m:'Segurança da Informação',n:4,t:'Desenvolvimento Seguro - OWASP III',d:'2026-10-09',h:'19:49',he:'20:31'},
+  {id:'pt_ev_272',m:'Língua Portuguesa',n:23,t:'Cesgranrio na Prática - Interpretação de Texto - Exercícios',d:'2026-10-09',h:'20:32',he:'21:09'},
+  {id:'pt_ev_273',m:'Língua Portuguesa',n:1,t:'Resolução de Prova - Cesgranrio - CEF 2026',d:'2026-10-09',h:'21:10',he:'21:41'},
+  {id:'pt_ev_274',m:'Língua Inglesa',n:23,t:'Law Has Always Worked With Technology',d:'2026-10-09',h:'21:42',he:'21:59'},
+  {id:'pt_ev_275',m:'Revisão',n:0,t:'Revisão',d:'2026-10-09',h:'22:00',he:'23:30'},
+  {id:'pt_ev_276',m:'Língua Inglesa',n:23,t:'Law Has Always Worked With Technology',d:'2026-10-10',h:'09:00',he:'09:21'},
+  {id:'pt_ev_277',m:'Língua Inglesa',n:24,t:'Metro Releases Preliminary Findings',d:'2026-10-10',h:'09:22',he:'10:01'},
+  {id:'pt_ev_278',m:'Arquitetura de Dados',n:23,t:'Inteligência artificial',d:'2026-10-10',h:'10:02',he:'10:35'},
+  {id:'pt_ev_279',m:'Arquitetura de Dados',n:24,t:'Inteligência de dados',d:'2026-10-10',h:'10:36',he:'11:03'},
+  {id:'pt_ev_280',m:'Gerenciamento de Projetos e Produtos',n:23,t:'Práticas Ágeis Em Escala - SAFE II',d:'2026-10-10',h:'11:04',he:'11:48'},
+  {id:'pt_ev_281',m:'Gerenciamento de Projetos e Produtos',n:24,t:'Prática Ágeis Em Escala - Lessi e Nexus',d:'2026-10-10',h:'11:49',he:'12:00'},
+  {id:'pt_ev_282',m:'Gerenciamento de Projetos e Produtos',n:24,t:'Prática Ágeis Em Escala - Lessi e Nexus',d:'2026-10-10',h:'13:30',he:'14:00'},
+  {id:'pt_ev_283',m:'Gestão e Governança em TI',n:23,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXIII',d:'2026-10-10',h:'14:01',he:'14:40'},
+  {id:'pt_ev_284',m:'Gestão e Governança em TI',n:24,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXIV',d:'2026-10-10',h:'14:41',he:'14:52'},
+  {id:'pt_ev_285',m:'Engenharia de Software',n:23,t:'Engenharia de Software - Estágio de Teste X',d:'2026-10-10',h:'14:53',he:'15:13'},
+  {id:'pt_ev_286',m:'Engenharia de Software',n:24,t:'Engenharia de Software - Desenvolvimento Ágil',d:'2026-10-10',h:'15:14',he:'15:44'},
+  {id:'pt_ev_287',m:'Análise de Dados e Informações',n:1,t:'ATENÇÃO! Assunto abordado na disciplina Arquitetura de Dados no Tópico 4',d:'2026-10-10',h:'15:45',he:'16:15'},
+  {id:'pt_ev_288',m:'Análise de Dados e Informações',n:2,t:'ATENÇÃO! Assunto abordado na disciplina Dados e Bases de Dados no Tópico',d:'2026-10-10',h:'16:16',he:'16:46'},
+  {id:'pt_ev_289',m:'Lógica Matemática',n:23,t:'Lógica Proposicional Simulado II',d:'2026-10-10',h:'16:47',he:'17:14'},
+  {id:'pt_ev_290',m:'Lógica Matemática',n:24,t:'Lógica Proposicional - Simulado III',d:'2026-10-10',h:'17:15',he:'17:44'},
+  {id:'pt_ev_291',m:'Segurança da Informação',n:5,t:'OWASP Top 10 2025',d:'2026-10-10',h:'17:45',he:'18:12'},
+  {id:'pt_ev_292',m:'Segurança da Informação',n:1,t:'Prevenção e Tratamentos de Incidentes - Introdução',d:'2026-10-10',h:'18:13',he:'18:36'},
+  {id:'pt_ev_293',m:'Língua Portuguesa',n:2,t:'Resolução de Prova - Cesgranrio - CEF 2026 II',d:'2026-10-10',h:'18:37',he:'19:17'},
+  {id:'pt_ev_294',m:'Língua Portuguesa',n:3,t:'Resolução de Prova - Cesgranrio - BNDS - Analista - 2024',d:'2026-10-10',h:'19:18',he:'19:43'},
+  {id:'pt_ev_295',m:'Língua Inglesa',n:25,t:'Virtues Of Vice',d:'2026-10-10',h:'19:44',he:'20:25'},
+  {id:'pt_ev_296',m:'Língua Inglesa',n:26,t:'Fed’s Jefferson...',d:'2026-10-10',h:'20:26',he:'21:07'},
+  {id:'pt_ev_297',m:'Arquitetura de Dados',n:1,t:'Banco de Dados - Metadados',d:'2026-10-10',h:'21:08',he:'21:30'},
+  {id:'pt_ev_298',m:'Revisão',n:0,t:'Revisão',d:'2026-10-10',h:'22:00',he:'23:30'},
+  {id:'pt_ev_299',m:'Arquitetura de Dados',n:1,t:'Banco de Dados - Metadados',d:'2026-10-11',h:'09:00',he:'09:03'},
+  {id:'pt_ev_300',m:'Arquitetura de Dados',n:2,t:'Banco de Dados - Metadados II',d:'2026-10-11',h:'09:04',he:'09:29'},
+  {id:'pt_ev_301',m:'Gerenciamento de Projetos e Produtos',n:25,t:'Técnicas de Estimativa e Priorização',d:'2026-10-11',h:'09:30',he:'10:08'},
+  {id:'pt_ev_302',m:'Gerenciamento de Projetos e Produtos',n:1,t:'Gestão de Projetos - PMBOK 7ª Edição',d:'2026-10-11',h:'10:09',he:'10:47'},
+  {id:'pt_ev_303',m:'Gestão e Governança em TI',n:25,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXV',d:'2026-10-11',h:'10:48',he:'11:02'},
+  {id:'pt_ev_304',m:'Gestão e Governança em TI',n:26,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXVI',d:'2026-10-11',h:'11:03',he:'11:16'},
+  {id:'pt_ev_305',m:'Engenharia de Software',n:25,t:'Engenharia de Software - Desenvolvimento Ágil II',d:'2026-10-11',h:'11:17',he:'11:53'},
+  {id:'pt_ev_306',m:'Engenharia de Software',n:26,t:'Engenharia de Software - Desenvolvimento Ágil - DSDM - Desenvolvimento de Sistemas Dinâmicos',d:'2026-10-11',h:'11:54',he:'12:00'},
+  {id:'pt_ev_307',m:'Engenharia de Software',n:26,t:'Engenharia de Software - Desenvolvimento Ágil - DSDM - Desenvolvimento de Sistemas Dinâmicos',d:'2026-10-11',h:'13:30',he:'13:50'},
+  {id:'pt_ev_308',m:'Análise de Dados e Informações',n:3,t:'ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados',d:'2026-10-11',h:'13:51',he:'14:21'},
+  {id:'pt_ev_309',m:'Análise de Dados e Informações',n:4,t:'ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados',d:'2026-10-11',h:'14:22',he:'14:52'},
+  {id:'pt_ev_310',m:'Lógica Matemática',n:25,t:'Lógica proposicional - Simulado IV',d:'2026-10-11',h:'14:53',he:'15:26'},
+  {id:'pt_ev_311',m:'Lógica Matemática',n:26,t:'Lógica Sequencial - Principais Macetes',d:'2026-10-11',h:'15:27',he:'16:01'},
+  {id:'pt_ev_312',m:'Segurança da Informação',n:2,t:'Prevenção de Incidentes',d:'2026-10-11',h:'16:02',he:'16:40'},
+  {id:'pt_ev_313',m:'Segurança da Informação',n:3,t:'Tratamento de Incidentes',d:'2026-10-11',h:'16:41',he:'16:59'},
+  {id:'pt_ev_314',m:'Língua Portuguesa',n:4,t:'Resolução de Prova - Cesgranrio - BNDS - Analista - 2024 II',d:'2026-10-11',h:'17:00',he:'17:40'},
+  {id:'pt_ev_315',m:'Língua Portuguesa',n:5,t:'Resolução de Prova - Cesgranrio - Banese/técnico Bancário/2025',d:'2026-10-11',h:'17:41',he:'18:19'},
+  {id:'pt_ev_316',m:'Língua Inglesa',n:27,t:'Fed’s Jefferson... II',d:'2026-10-11',h:'18:20',he:'18:59'},
+  {id:'pt_ev_317',m:'Língua Inglesa',n:28,t:'Hagar - The Horrible',d:'2026-10-11',h:'19:00',he:'19:22'},
+  {id:'pt_ev_318',m:'Arquitetura de Dados',n:1,t:'ATENÇÃO! Assunto abordado na disciplina Análise de Dados e Informações',d:'2026-10-11',h:'19:23',he:'19:53'},
+  {id:'pt_ev_319',m:'Arquitetura de Dados',n:1,t:'Banco de Dados NoSQL - Conceitos Básicos',d:'2026-10-11',h:'19:54',he:'20:37'},
+  {id:'pt_ev_320',m:'Gerenciamento de Projetos e Produtos',n:2,t:'Gestão de Projetos - PMBOK 7ª Edição II',d:'2026-10-11',h:'20:38',he:'21:05'},
+  {id:'pt_ev_321',m:'Gerenciamento de Projetos e Produtos',n:3,t:'Gestão de Projetos - PMBOK 7ª Edição III',d:'2026-10-11',h:'21:06',he:'21:30'},
+  {id:'pt_ev_322',m:'Revisão',n:0,t:'Revisão',d:'2026-10-11',h:'22:00',he:'23:30'},
+  {id:'pt_ev_323',m:'Gerenciamento de Projetos e Produtos',n:3,t:'Gestão de Projetos - PMBOK 7ª Edição III',d:'2026-10-12',h:'18:30',he:'18:43'},
+  {id:'pt_ev_324',m:'Gestão e Governança em TI',n:27,t:'Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais - LGPD XXVII',d:'2026-10-12',h:'18:44',he:'18:57'},
+  {id:'pt_ev_325',m:'Engenharia de Software',n:27,t:'Engenharia de Software - Desenvolvimento Ágil - Scrum',d:'2026-10-12',h:'18:58',he:'19:35'},
+  {id:'pt_ev_326',m:'Engenharia de Software',n:28,t:'Engenharia de Software - Desenvolvimento Ágil - Scrum II',d:'2026-10-12',h:'19:36',he:'20:07'},
+  {id:'pt_ev_327',m:'Análise de Dados e Informações',n:5,t:'ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados',d:'2026-10-12',h:'20:08',he:'20:38'},
+  {id:'pt_ev_328',m:'Análise de Dados e Informações',n:6,t:'ATENÇÃO! Assunto abordado na disciplina Processamento de Linguagem Natural (NLP)',d:'2026-10-12',h:'20:39',he:'21:09'},
+  {id:'pt_ev_329',m:'Lógica Matemática',n:27,t:'Lógica Sequencial - Principais Macetes II',d:'2026-10-12',h:'21:10',he:'21:43'},
+  {id:'pt_ev_330',m:'Lógica Matemática',n:28,t:'Lógica Sequencial - Principais Macetes III',d:'2026-10-12',h:'21:44',he:'21:59'},
+  {id:'pt_ev_331',m:'Revisão',n:0,t:'Revisão',d:'2026-10-12',h:'22:00',he:'23:30'},
+  {id:'pt_ev_332',m:'Revisão',n:0,t:'Revisão',d:'2026-10-13',h:'22:00',he:'23:30'},
+  {id:'pt_ev_333',m:'Lógica Matemática',n:28,t:'Lógica Sequencial - Principais Macetes III',d:'2026-10-13',h:'23:31',he:'23:40'},
+  {id:'pt_ev_334',m:'Lógica Matemática',n:28,t:'Lógica Sequencial - Principais Macetes III',d:'2026-10-14',h:'18:30',he:'18:38'},
+  {id:'pt_ev_335',m:'Segurança da Informação',n:4,t:'Gestão de Incidentes na ABNT NBR ISO / IEC 27002',d:'2026-10-14',h:'18:39',he:'19:03'},
+  {id:'pt_ev_336',m:'Segurança da Informação',n:1,t:'Testes de Penetração - Conceitos iniciais',d:'2026-10-14',h:'19:04',he:'19:23'},
+  {id:'pt_ev_337',m:'Língua Portuguesa',n:6,t:'Resolução de Prova - Cesgranrio - Banese/técnico Bancário/2025 II',d:'2026-10-14',h:'19:24',he:'20:00'},
+  {id:'pt_ev_338',m:'Língua Inglesa',n:29,t:'Half The Nation',d:'2026-10-14',h:'20:01',he:'20:41'},
+  {id:'pt_ev_339',m:'Língua Inglesa',n:30,t:'Managing Government',d:'2026-10-14',h:'20:42',he:'21:22'},
+  {id:'pt_ev_340',m:'Arquitetura de Dados',n:2,t:'Banco de Dados NoSQL - Questões de Concursos sobre Conceitos Básicos I',d:'2026-10-14',h:'21:23',he:'21:42'},
+  {id:'pt_ev_341',m:'Arquitetura de Dados',n:3,t:'Banco de Dados NoSQL - Questões de Concursos sobre Conceitos Básicos II',d:'2026-10-14',h:'21:43',he:'21:59'},
+  {id:'pt_ev_342',m:'Revisão',n:0,t:'Revisão',d:'2026-10-14',h:'22:00',he:'23:30'},
+  {id:'pt_ev_343',m:'Gerenciamento de Projetos e Produtos',n:4,t:'Gestão de Projetos - PMBOK 7ª Edição IV',d:'2026-10-15',h:'18:30',he:'19:05'},
+  {id:'pt_ev_344',m:'Gerenciamento de Projetos e Produtos',n:5,t:'Gestão de Projetos - PMBOK 7ª Edição - Escritório de Planejamento de Processos',d:'2026-10-15',h:'19:06',he:'19:37'},
+  {id:'pt_ev_345',m:'Engenharia de Software',n:29,t:'Engenharia de Software - Desenvolvimento Ágil - Scrum III',d:'2026-10-15',h:'19:38',he:'20:01'},
+  {id:'pt_ev_346',m:'Engenharia de Software',n:30,t:'Engenharia de Software - Desenvolvimento Ágil - XP - Extreme Programming',d:'2026-10-15',h:'20:02',he:'20:29'},
+  {id:'pt_ev_347',m:'Análise de Dados e Informações',n:7,t:'ATENÇÃO! Assunto abordado na disciplina Qualidade e Preparação de Dados',d:'2026-10-15',h:'20:30',he:'21:00'},
+  {id:'pt_ev_348',m:'Análise de Dados e Informações',n:1,t:'Dados Estruturados e Não Estruturados',d:'2026-10-15',h:'21:01',he:'21:30'},
+  {id:'pt_ev_349',m:'Lógica Matemática',n:29,t:'Lógica Sequencial - Sequências Envolvendo Números',d:'2026-10-15',h:'21:31',he:'21:59'},
+  {id:'pt_ev_350',m:'Revisão',n:0,t:'Revisão',d:'2026-10-15',h:'22:00',he:'23:30'},
+  {id:'pt_ev_351',m:'Lógica Matemática',n:29,t:'Lógica Sequencial - Sequências Envolvendo Números',d:'2026-10-16',h:'18:30',he:'18:38'},
+  {id:'pt_ev_352',m:'Lógica Matemática',n:30,t:'Lógica Sequencial - Sequências Envolvendo Números II',d:'2026-10-16',h:'18:39',he:'19:13'},
+  {id:'pt_ev_353',m:'Segurança da Informação',n:2,t:'Testes de Penetração - Tipos de Testes',d:'2026-10-16',h:'19:14',he:'19:40'},
+  {id:'pt_ev_354',m:'Segurança da Informação',n:3,t:'Testes de Penetração - Metodologias',d:'2026-10-16',h:'19:41',he:'19:50'},
+  {id:'pt_ev_355',m:'Língua Inglesa',n:31,t:'Multiliteracies',d:'2026-10-16',h:'19:51',he:'20:33'},
+  {id:'pt_ev_356',m:'Língua Inglesa',n:32,t:'Of Course They’re Fake Videos',d:'2026-10-16',h:'20:34',he:'21:03'},
+  {id:'pt_ev_357',m:'Arquitetura de Dados',n:4,t:'Banco de Dados NoSQL - NoSQL Orientados a Grafos',d:'2026-10-16',h:'21:04',he:'21:30'},
+  {id:'pt_ev_358',m:'Arquitetura de Dados',n:5,t:'Banco de Dados NoSQL - NoSQL Orientados a Colunas e a Chaves - Valor',d:'2026-10-16',h:'21:31',he:'21:55'},
+  {id:'pt_ev_359',m:'Gerenciamento de Projetos e Produtos',n:6,t:'Gestão de Projetos - PMBOK 7ª Edição - Escritório de Planejamento de Processos II',d:'2026-10-16',h:'21:56',he:'21:59'},
+  {id:'pt_ev_360',m:'Revisão',n:0,t:'Revisão',d:'2026-10-16',h:'22:00',he:'23:30'},
+  {id:'pt_ev_361',m:'Gerenciamento de Projetos e Produtos',n:6,t:'Gestão de Projetos - PMBOK 7ª Edição - Escritório de Planejamento de Processos II',d:'2026-10-17',h:'09:00',he:'09:26'},
+  {id:'pt_ev_362',m:'Gerenciamento de Projetos e Produtos',n:7,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínios de Desempenho - Partes Interessadas',d:'2026-10-17',h:'09:27',he:'09:59'},
+  {id:'pt_ev_363',m:'Engenharia de Software',n:31,t:'Engenharia de Software - Desenvolvimento Ágil - XP - Extreme Programming II',d:'2026-10-17',h:'10:00',he:'10:24'},
+  {id:'pt_ev_364',m:'Engenharia de Software',n:32,t:'Engenharia de Software - Desenvolvimento Ágil - TDD - Test Driven Development',d:'2026-10-17',h:'10:25',he:'10:50'},
+  {id:'pt_ev_365',m:'Análise de Dados e Informações',n:1,t:'CSV',d:'2026-10-17',h:'10:51',he:'11:17'},
+  {id:'pt_ev_366',m:'Lógica Matemática',n:31,t:'Lógica Sequencial - Sequências Envolvendo Letras e Palavras',d:'2026-10-17',h:'11:18',he:'11:51'},
+  {id:'pt_ev_367',m:'Lógica Matemática',n:32,t:'Lógica Sequencial Sequências Envolvendo Figuras',d:'2026-10-17',h:'11:52',he:'12:00'},
+  {id:'pt_ev_368',m:'Lógica Matemática',n:32,t:'Lógica Sequencial Sequências Envolvendo Figuras',d:'2026-10-17',h:'13:30',he:'13:54'},
+  {id:'pt_ev_369',m:'Segurança da Informação',n:4,t:'Testes de Penetração - Técnicas e Ferramentas',d:'2026-10-17',h:'13:55',he:'14:19'},
+  {id:'pt_ev_370',m:'Segurança da Informação',n:5,t:'Testes de Penetração - Técnicas e Ferramentas II',d:'2026-10-17',h:'14:20',he:'14:39'},
+  {id:'pt_ev_371',m:'Língua Inglesa',n:33,t:'Politics Of The Police',d:'2026-10-17',h:'14:40',he:'15:21'},
+  {id:'pt_ev_372',m:'Língua Inglesa',n:34,t:'Private Zero',d:'2026-10-17',h:'15:22',he:'16:02'},
+  {id:'pt_ev_373',m:'Arquitetura de Dados',n:6,t:'Banco de Dados NoSQL - NoSQL Orientados a Documentos',d:'2026-10-17',h:'16:03',he:'16:32'},
+  {id:'pt_ev_374',m:'Arquitetura de Dados',n:7,t:'Banco de Dados NoSQL - MongoDB',d:'2026-10-17',h:'16:33',he:'17:07'},
+  {id:'pt_ev_375',m:'Gerenciamento de Projetos e Produtos',n:8,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínios de Desempenho - Partes Interessadas II',d:'2026-10-17',h:'17:08',he:'17:45'},
+  {id:'pt_ev_376',m:'Gerenciamento de Projetos e Produtos',n:9,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínios de Desempenho - Partes Interessadas III',d:'2026-10-17',h:'17:46',he:'18:18'},
+  {id:'pt_ev_377',m:'Engenharia de Software',n:33,t:'Engenharia de Software - Desenvolvimento Ágil - ATDD - Acceptance Test - Driven Development',d:'2026-10-17',h:'18:19',he:'18:43'},
+  {id:'pt_ev_378',m:'Engenharia de Software',n:34,t:'Engenharia de Software - Desenvolvimento Ágil - BDD - Behavior Driven Development',d:'2026-10-17',h:'18:44',he:'19:13'},
+  {id:'pt_ev_379',m:'Lógica Matemática',n:33,t:'Lógica Sequencial Problemas Matriciais - Correlacionamento (Associações Lógicas)',d:'2026-10-17',h:'19:14',he:'19:49'},
+  {id:'pt_ev_380',m:'Lógica Matemática',n:34,t:'Lógica Sequencial Verdades e Mentiras',d:'2026-10-17',h:'19:50',he:'20:24'},
+  {id:'pt_ev_381',m:'Segurança da Informação',n:6,t:'Testes de Penetração - Questões',d:'2026-10-17',h:'20:25',he:'20:38'},
+  {id:'pt_ev_382',m:'Segurança da Informação',n:1,t:'ISO 31000 - Gestão de Riscos',d:'2026-10-17',h:'20:39',he:'21:14'},
+  {id:'pt_ev_383',m:'Língua Inglesa',n:35,t:'Puno District',d:'2026-10-17',h:'21:15',he:'21:30'},
+  {id:'pt_ev_384',m:'Revisão',n:0,t:'Revisão',d:'2026-10-17',h:'22:00',he:'23:30'},
+  {id:'pt_ev_385',m:'Língua Inglesa',n:35,t:'Puno District',d:'2026-10-18',h:'09:00',he:'09:25'},
+  {id:'pt_ev_386',m:'Língua Inglesa',n:36,t:'For The First Time...',d:'2026-10-18',h:'09:26',he:'10:06'},
+  {id:'pt_ev_387',m:'Arquitetura de Dados',n:8,t:'Banco de Dados NoSQL - Redis',d:'2026-10-18',h:'10:07',he:'10:27'},
+  {id:'pt_ev_388',m:'Arquitetura de Dados',n:1,t:'Introdução',d:'2026-10-18',h:'10:28',he:'11:09'},
+  {id:'pt_ev_389',m:'Gerenciamento de Projetos e Produtos',n:10,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Equipe',d:'2026-10-18',h:'11:10',he:'11:50'},
+  {id:'pt_ev_390',m:'Gerenciamento de Projetos e Produtos',n:11,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Equipe II',d:'2026-10-18',h:'11:51',he:'12:00'},
+  {id:'pt_ev_391',m:'Gerenciamento de Projetos e Produtos',n:11,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Equipe II',d:'2026-10-18',h:'13:30',he:'13:56'},
+  {id:'pt_ev_392',m:'Engenharia de Software',n:35,t:'Engenharia de Software - Desenvolvimento Ágil - Kanban',d:'2026-10-18',h:'13:57',he:'14:28'},
+  {id:'pt_ev_393',m:'Engenharia de Software',n:36,t:'Engenharia de Software - DDD - Domain - Driven Design',d:'2026-10-18',h:'14:29',he:'14:52'},
+  {id:'pt_ev_394',m:'Lógica Matemática',n:35,t:'Lógica Sequencial Problemas Envolvendo Mesas',d:'2026-10-18',h:'14:53',he:'15:21'},
+  {id:'pt_ev_395',m:'Lógica Matemática',n:36,t:'Lógica Sequencial - Problemas Aritméticos e Geométricos',d:'2026-10-18',h:'15:22',he:'15:58'},
+  {id:'pt_ev_396',m:'Segurança da Informação',n:2,t:'ISO 31000 - Gestão de Riscos II',d:'2026-10-18',h:'15:59',he:'16:30'},
+  {id:'pt_ev_397',m:'Segurança da Informação',n:3,t:'ISO 31000 - Gestão de Riscos III',d:'2026-10-18',h:'16:31',he:'17:08'},
+  {id:'pt_ev_398',m:'Língua Inglesa',n:37,t:'Over The Past Three Decades',d:'2026-10-18',h:'17:09',he:'17:45'},
+  {id:'pt_ev_399',m:'Língua Inglesa',n:38,t:'Real Medicine',d:'2026-10-18',h:'17:46',he:'18:27'},
+  {id:'pt_ev_400',m:'Arquitetura de Dados',n:2,t:'Tipos de Dados',d:'2026-10-18',h:'18:28',he:'19:00'},
+  {id:'pt_ev_401',m:'Arquitetura de Dados',n:3,t:'VS de Big Data',d:'2026-10-18',h:'19:01',he:'19:32'},
+  {id:'pt_ev_402',m:'Gerenciamento de Projetos e Produtos',n:12,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Equipe III',d:'2026-10-18',h:'19:33',he:'19:53'},
+  {id:'pt_ev_403',m:'Gerenciamento de Projetos e Produtos',n:13,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida',d:'2026-10-18',h:'19:54',he:'20:30'},
+  {id:'pt_ev_404',m:'Engenharia de Software',n:37,t:'Engenharia de Software - Desenvolvimento Ágil - Tópicos Relevantes',d:'2026-10-18',h:'20:31',he:'20:54'},
+  {id:'pt_ev_405',m:'Engenharia de Software',n:38,t:'Engenharia de Software - Desenvolvimento Ágil - Tópicos Relevantes II',d:'2026-10-18',h:'20:55',he:'21:23'},
+  {id:'pt_ev_406',m:'Lógica Matemática',n:37,t:'Lógica Sequencial - Simulado',d:'2026-10-18',h:'21:24',he:'21:30'},
+  {id:'pt_ev_407',m:'Revisão',n:0,t:'Revisão',d:'2026-10-18',h:'22:00',he:'23:30'},
+  {id:'pt_ev_408',m:'Lógica Matemática',n:37,t:'Lógica Sequencial - Simulado',d:'2026-10-19',h:'18:30',he:'18:59'},
+  {id:'pt_ev_409',m:'Lógica Matemática',n:38,t:'Lógica Sequencial - Simulado II',d:'2026-10-19',h:'19:00',he:'19:30'},
+  {id:'pt_ev_410',m:'Segurança da Informação',n:4,t:'ISO 31000 - Gestão de Riscos IV',d:'2026-10-19',h:'19:31',he:'20:00'},
+  {id:'pt_ev_411',m:'Segurança da Informação',n:5,t:'ISO 31000 - Gestão de Riscos V',d:'2026-10-19',h:'20:01',he:'20:39'},
+  {id:'pt_ev_412',m:'Língua Inglesa',n:39,t:'Tackling Corruption For Growth',d:'2026-10-19',h:'20:40',he:'21:20'},
+  {id:'pt_ev_413',m:'Língua Inglesa',n:40,t:'The Tech Product Network',d:'2026-10-19',h:'21:21',he:'21:59'},
+  {id:'pt_ev_414',m:'Revisão',n:0,t:'Revisão',d:'2026-10-19',h:'22:00',he:'23:30'},
+  {id:'pt_ev_415',m:'Revisão',n:0,t:'Revisão',d:'2026-10-20',h:'22:00',he:'23:30'},
+  {id:'pt_ev_416',m:'Língua Inglesa',n:40,t:'The Tech Product Network',d:'2026-10-20',h:'23:31',he:'23:33'},
+  {id:'pt_ev_417',m:'Arquitetura de Dados',n:4,t:'VS de Big Data II',d:'2026-10-20',h:'23:34',he:'23:40'},
+  {id:'pt_ev_418',m:'Arquitetura de Dados',n:4,t:'VS de Big Data II',d:'2026-10-21',h:'18:30',he:'18:38'},
+  {id:'pt_ev_419',m:'Arquitetura de Dados',n:5,t:'Data Lake',d:'2026-10-21',h:'18:39',he:'19:17'},
+  {id:'pt_ev_420',m:'Gerenciamento de Projetos e Produtos',n:14,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida II',d:'2026-10-21',h:'19:18',he:'19:52'},
+  {id:'pt_ev_421',m:'Gerenciamento de Projetos e Produtos',n:15,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida III',d:'2026-10-21',h:'19:53',he:'20:15'},
+  {id:'pt_ev_422',m:'Engenharia de Software',n:39,t:'Engenharia de Software - Qualidade de Software',d:'2026-10-21',h:'20:16',he:'20:46'},
+  {id:'pt_ev_423',m:'Engenharia de Software',n:40,t:'Engenharia de Software - Qualidade de Software II',d:'2026-10-21',h:'20:47',he:'21:12'},
+  {id:'pt_ev_424',m:'Lógica Matemática',n:39,t:'Lógica Sequencial - Simulado III',d:'2026-10-21',h:'21:13',he:'21:45'},
+  {id:'pt_ev_425',m:'Segurança da Informação',n:1,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação - Introdução',d:'2026-10-21',h:'21:46',he:'21:59'},
+  {id:'pt_ev_426',m:'Revisão',n:0,t:'Revisão',d:'2026-10-21',h:'22:00',he:'23:30'},
+  {id:'pt_ev_427',m:'Segurança da Informação',n:1,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação - Introdução',d:'2026-10-22',h:'18:30',he:'19:01'},
+  {id:'pt_ev_428',m:'Segurança da Informação',n:2,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação - Escopo',d:'2026-10-22',h:'19:02',he:'19:21'},
+  {id:'pt_ev_429',m:'Língua Inglesa',n:41,t:'The Use Of Music And Songs In The Efl Classroom',d:'2026-10-22',h:'19:22',he:'20:00'},
+  {id:'pt_ev_430',m:'Língua Inglesa',n:42,t:'The Use Of Music And Songs In The Efl Classroom II',d:'2026-10-22',h:'20:01',he:'20:41'},
+  {id:'pt_ev_431',m:'Arquitetura de Dados',n:6,t:'Data Lakehouse',d:'2026-10-22',h:'20:42',he:'20:57'},
+  {id:'pt_ev_432',m:'Arquitetura de Dados',n:7,t:'ETL x ELT',d:'2026-10-22',h:'20:58',he:'21:29'},
+  {id:'pt_ev_433',m:'Gerenciamento de Projetos e Produtos',n:16,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida IV',d:'2026-10-22',h:'21:30',he:'21:59'},
+  {id:'pt_ev_434',m:'Revisão',n:0,t:'Revisão',d:'2026-10-22',h:'22:00',he:'23:30'},
+  {id:'pt_ev_435',m:'Gerenciamento de Projetos e Produtos',n:16,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida IV',d:'2026-10-23',h:'18:30',he:'18:36'},
+  {id:'pt_ev_436',m:'Gerenciamento de Projetos e Produtos',n:17,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Abordagem de Desenvolvimento e do Ciclo de Vida V',d:'2026-10-23',h:'18:37',he:'18:58'},
+  {id:'pt_ev_437',m:'Engenharia de Software',n:41,t:'Engenharia de Software - Qualidade de Software III',d:'2026-10-23',h:'18:59',he:'19:27'},
+  {id:'pt_ev_438',m:'Engenharia de Software',n:42,t:'Engenharia de Software - Qualidade de Software IV',d:'2026-10-23',h:'19:28',he:'19:51'},
+  {id:'pt_ev_439',m:'Segurança da Informação',n:3,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação - Controles Organizacionais',d:'2026-10-23',h:'19:52',he:'20:05'},
+  {id:'pt_ev_440',m:'Segurança da Informação',n:4,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação - Controles Organizacionais II',d:'2026-10-23',h:'20:06',he:'20:24'},
+  {id:'pt_ev_441',m:'Língua Inglesa',n:43,t:'Trust And Audit',d:'2026-10-23',h:'20:25',he:'21:06'},
+  {id:'pt_ev_442',m:'Língua Inglesa',n:44,t:'Virtues Of Vice – The Rewards From Investing In Politically Incorrect Companies',d:'2026-10-23',h:'21:07',he:'21:48'},
+  {id:'pt_ev_443',m:'Arquitetura de Dados',n:8,t:'Ingestão de Dados e Pipeline',d:'2026-10-23',h:'21:49',he:'21:59'},
+  {id:'pt_ev_444',m:'Revisão',n:0,t:'Revisão',d:'2026-10-23',h:'22:00',he:'23:30'},
+  {id:'pt_ev_445',m:'Arquitetura de Dados',n:8,t:'Ingestão de Dados e Pipeline',d:'2026-10-24',h:'09:00',he:'09:17'},
+  {id:'pt_ev_446',m:'Arquitetura de Dados',n:9,t:'Arquitetura de Big Data',d:'2026-10-24',h:'09:18',he:'09:42'},
+  {id:'pt_ev_447',m:'Gerenciamento de Projetos e Produtos',n:18,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento',d:'2026-10-24',h:'09:43',he:'10:19'},
+  {id:'pt_ev_448',m:'Gerenciamento de Projetos e Produtos',n:19,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento II',d:'2026-10-24',h:'10:20',he:'10:55'},
+  {id:'pt_ev_449',m:'Engenharia de Software',n:43,t:'Engenharia de Software - Qualidade de Software V',d:'2026-10-24',h:'10:56',he:'11:31'},
+  {id:'pt_ev_450',m:'Engenharia de Software',n:44,t:'Engenharia de Software - Pontos de Função',d:'2026-10-24',h:'11:32',he:'12:00'},
+  {id:'pt_ev_451',m:'Segurança da Informação',n:5,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação - Controles Organizacionais III',d:'2026-10-24',h:'13:30',he:'13:45'},
+  {id:'pt_ev_452',m:'Segurança da Informação',n:6,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação',d:'2026-10-24',h:'13:46',he:'14:18'},
+  {id:'pt_ev_453',m:'Língua Inglesa',n:45,t:'Wallerstein',d:'2026-10-24',h:'14:19',he:'14:57'},
+  {id:'pt_ev_454',m:'Língua Inglesa',n:46,t:'We’re So Well Educated',d:'2026-10-24',h:'14:58',he:'15:38'},
+  {id:'pt_ev_455',m:'Arquitetura de Dados',n:10,t:'DataMesh',d:'2026-10-24',h:'15:39',he:'16:04'},
+  {id:'pt_ev_456',m:'Arquitetura de Dados',n:11,t:'HADOOP',d:'2026-10-24',h:'16:05',he:'16:29'},
+  {id:'pt_ev_457',m:'Gerenciamento de Projetos e Produtos',n:20,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento III',d:'2026-10-24',h:'16:30',he:'17:02'},
+  {id:'pt_ev_458',m:'Gerenciamento de Projetos e Produtos',n:21,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento IV',d:'2026-10-24',h:'17:03',he:'17:17'},
+  {id:'pt_ev_459',m:'Engenharia de Software',n:45,t:'Engenharia de Software - Pontos de Função II',d:'2026-10-24',h:'17:18',he:'17:50'},
+  {id:'pt_ev_460',m:'Engenharia de Software',n:46,t:'Engenharia de Software - Gerenciamento de Configuração',d:'2026-10-24',h:'17:51',he:'18:17'},
+  {id:'pt_ev_461',m:'Segurança da Informação',n:7,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação',d:'2026-10-24',h:'18:18',he:'18:37'},
+  {id:'pt_ev_462',m:'Segurança da Informação',n:8,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação',d:'2026-10-24',h:'18:38',he:'18:59'},
+  {id:'pt_ev_463',m:'Língua Inglesa',n:47,t:'With The Exception Of Business Owners',d:'2026-10-24',h:'19:00',he:'19:39'},
+  {id:'pt_ev_464',m:'Língua Inglesa',n:48,t:'Geopolitical Tensions And Resource Nationalism',d:'2026-10-24',h:'19:40',he:'20:14'},
+  {id:'pt_ev_465',m:'Arquitetura de Dados',n:12,t:'HADOOP II',d:'2026-10-24',h:'20:15',he:'20:48'},
+  {id:'pt_ev_466',m:'Arquitetura de Dados',n:13,t:'Apache Spark',d:'2026-10-24',h:'20:49',he:'21:11'},
+  {id:'pt_ev_467',m:'Gerenciamento de Projetos e Produtos',n:22,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento V',d:'2026-10-24',h:'21:12',he:'21:30'},
+  {id:'pt_ev_468',m:'Revisão',n:0,t:'Revisão',d:'2026-10-24',h:'22:00',he:'23:30'},
+  {id:'pt_ev_469',m:'Gerenciamento de Projetos e Produtos',n:22,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento V',d:'2026-10-25',h:'09:00',he:'09:19'},
+  {id:'pt_ev_470',m:'Gerenciamento de Projetos e Produtos',n:23,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento VI',d:'2026-10-25',h:'09:20',he:'09:50'},
+  {id:'pt_ev_471',m:'Engenharia de Software',n:47,t:'Engenharia de Software - Sistema de Controle de Versão',d:'2026-10-25',h:'09:51',he:'10:21'},
+  {id:'pt_ev_472',m:'Engenharia de Software',n:48,t:'Engenharia de Software - Construção de Sistemas',d:'2026-10-25',h:'10:22',he:'10:48'},
+  {id:'pt_ev_473',m:'Segurança da Informação',n:9,t:'ISO/IEC 27002:2022 - Controles de Segurança da Informação',d:'2026-10-25',h:'10:49',he:'11:05'},
+  {id:'pt_ev_474',m:'Segurança da Informação',n:10,t:'ISO/IEC 27002:2022 - Controles Organizacionais',d:'2026-10-25',h:'11:06',he:'11:25'},
+  {id:'pt_ev_475',m:'Língua Inglesa',n:49,t:'Niobium',d:'2026-10-25',h:'11:26',he:'12:00'},
+  {id:'pt_ev_476',m:'Língua Inglesa',n:49,t:'Niobium',d:'2026-10-25',h:'13:30',he:'13:32'},
+  {id:'pt_ev_477',m:'Língua Inglesa',n:50,t:'Rare Earths',d:'2026-10-25',h:'13:33',he:'14:06'},
+  {id:'pt_ev_478',m:'Arquitetura de Dados',n:14,t:'Apache Spark II',d:'2026-10-25',h:'14:07',he:'14:44'},
+  {id:'pt_ev_479',m:'Arquitetura de Dados',n:15,t:'Apache Kafka',d:'2026-10-25',h:'14:45',he:'15:15'},
+  {id:'pt_ev_480',m:'Gerenciamento de Projetos e Produtos',n:24,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Planejamento VII',d:'2026-10-25',h:'15:16',he:'15:52'},
+  {id:'pt_ev_481',m:'Gerenciamento de Projetos e Produtos',n:25,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto',d:'2026-10-25',h:'15:53',he:'16:27'},
+  {id:'pt_ev_482',m:'Engenharia de Software',n:1,t:'Ferramenta de versionamento Git',d:'2026-10-25',h:'16:28',he:'16:55'},
+  {id:'pt_ev_483',m:'Engenharia de Software',n:2,t:'Ferramenta de Versionamento GIT II',d:'2026-10-25',h:'16:56',he:'17:31'},
+  {id:'pt_ev_484',m:'Segurança da Informação',n:11,t:'ISO/IEC 27002:2022 - Controles Organizacionais II',d:'2026-10-25',h:'17:32',he:'17:47'},
+  {id:'pt_ev_485',m:'Segurança da Informação',n:12,t:'ISO/IEC 27002:2022 - Controles Organizacionais III',d:'2026-10-25',h:'17:48',he:'18:07'},
+  {id:'pt_ev_486',m:'Língua Inglesa',n:51,t:'Transition To Renewable Energy',d:'2026-10-25',h:'18:08',he:'18:43'},
+  {id:'pt_ev_487',m:'Língua Inglesa',n:1,t:'Língua Inglesa - Alma e Perfil da Prova de Inglês',d:'2026-10-25',h:'18:44',he:'19:18'},
+  {id:'pt_ev_488',m:'Arquitetura de Dados',n:16,t:'Coleta, Tratamento, Armazenamento, Integração e Recuperação de Dados',d:'2026-10-25',h:'19:19',he:'19:55'},
+  {id:'pt_ev_489',m:'Arquitetura de Dados',n:1,t:'Introdução',d:'2026-10-25',h:'19:56',he:'20:21'},
+  {id:'pt_ev_490',m:'Gerenciamento de Projetos e Produtos',n:26,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto II',d:'2026-10-25',h:'20:22',he:'20:49'},
+  {id:'pt_ev_491',m:'Gerenciamento de Projetos e Produtos',n:27,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto III',d:'2026-10-25',h:'20:50',he:'21:24'},
+  {id:'pt_ev_492',m:'Engenharia de Software',n:3,t:'Ferramenta de Versionamento GIT III',d:'2026-10-25',h:'21:25',he:'21:30'},
+  {id:'pt_ev_493',m:'Revisão',n:0,t:'Revisão',d:'2026-10-25',h:'22:00',he:'23:30'},
+  {id:'pt_ev_494',m:'Engenharia de Software',n:3,t:'Ferramenta de Versionamento GIT III',d:'2026-10-26',h:'18:30',he:'19:01'},
+  {id:'pt_ev_495',m:'Engenharia de Software',n:4,t:'Análise estática de código fonte: SonarQube',d:'2026-10-26',h:'19:02',he:'19:37'},
+  {id:'pt_ev_496',m:'Segurança da Informação',n:13,t:'ISO/IEC 27002:2022 - Controles Organizacionais IV',d:'2026-10-26',h:'19:38',he:'20:20'},
+  {id:'pt_ev_497',m:'Segurança da Informação',n:14,t:'ISO/IEC 27002:2022 - Controles Organizacionais V',d:'2026-10-26',h:'20:21',he:'20:35'},
+  {id:'pt_ev_498',m:'Língua Inglesa',n:2,t:'Língua Inglesa - Como Estudar Inglês e Resolver a Prova',d:'2026-10-26',h:'20:36',he:'21:11'},
+  {id:'pt_ev_499',m:'Língua Inglesa',n:3,t:'Língua Inglesa - Inglês não é de trás para frente',d:'2026-10-26',h:'21:12',he:'21:47'},
+  {id:'pt_ev_500',m:'Arquitetura de Dados',n:2,t:'Dimensões da Qualidade de Dados',d:'2026-10-26',h:'21:48',he:'21:59'},
+  {id:'pt_ev_501',m:'Revisão',n:0,t:'Revisão',d:'2026-10-26',h:'22:00',he:'23:30'},
+  {id:'pt_ev_502',m:'Revisão',n:0,t:'Revisão',d:'2026-10-27',h:'22:00',he:'23:30'},
+  {id:'pt_ev_503',m:'Arquitetura de Dados',n:2,t:'Dimensões da Qualidade de Dados',d:'2026-10-27',h:'23:31',he:'23:40'},
+  {id:'pt_ev_504',m:'Arquitetura de Dados',n:2,t:'Dimensões da Qualidade de Dados',d:'2026-10-28',h:'18:30',he:'18:35'},
+  {id:'pt_ev_505',m:'Arquitetura de Dados',n:3,t:'Técnicas e Boas Práticas',d:'2026-10-28',h:'18:36',he:'19:15'},
+  {id:'pt_ev_506',m:'Gerenciamento de Projetos e Produtos',n:28,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho do Trabalho do Projeto IV',d:'2026-10-28',h:'19:16',he:'19:31'},
+  {id:'pt_ev_507',m:'Gerenciamento de Projetos e Produtos',n:29,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Medição',d:'2026-10-28',h:'19:32',he:'20:05'},
+  {id:'pt_ev_508',m:'Segurança da Informação',n:15,t:'ISO/IEC 27002:2022 - Controles Organizacionais VI',d:'2026-10-28',h:'20:06',he:'20:42'},
+  {id:'pt_ev_509',m:'Segurança da Informação',n:16,t:'ISO/IEC 27002:2022 - Controles Organizacionais VII',d:'2026-10-28',h:'20:43',he:'21:05'},
+  {id:'pt_ev_510',m:'Língua Inglesa',n:4,t:'Língua Inglesa - Conceito de Lista de Verbos',d:'2026-10-28',h:'21:06',he:'21:42'},
+  {id:'pt_ev_511',m:'Língua Inglesa',n:5,t:'Língua Inglesa - O Famoso Verbo To Be',d:'2026-10-28',h:'21:43',he:'21:59'},
+  {id:'pt_ev_512',m:'Revisão',n:0,t:'Revisão',d:'2026-10-28',h:'22:00',he:'23:30'},
+  {id:'pt_ev_513',m:'Língua Inglesa',n:5,t:'Língua Inglesa - O Famoso Verbo To Be',d:'2026-10-29',h:'18:30',he:'18:47'},
+  {id:'pt_ev_514',m:'Gerenciamento de Projetos e Produtos',n:30,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Medição II',d:'2026-10-29',h:'18:48',he:'19:16'},
+  {id:'pt_ev_515',m:'Gerenciamento de Projetos e Produtos',n:31,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Incerteza',d:'2026-10-29',h:'19:17',he:'19:50'},
+  {id:'pt_ev_516',m:'Segurança da Informação',n:17,t:'ISO/IEC 27002:2022 - Controles Organizacionais VIII',d:'2026-10-29',h:'19:51',he:'20:25'},
+  {id:'pt_ev_517',m:'Segurança da Informação',n:18,t:'ISO/IEC 27002:2022 - Controles Organizacionais IX',d:'2026-10-29',h:'20:26',he:'20:43'},
+  {id:'pt_ev_518',m:'Língua Inglesa',n:6,t:'Língua Inglesa - Comparativos e Superlativos de Igualdade e Inferioridade',d:'2026-10-29',h:'20:44',he:'21:18'},
+  {id:'pt_ev_519',m:'Língua Inglesa',n:7,t:'Língua Inglesa - Comparativos e Superlativos de Superioridade',d:'2026-10-29',h:'21:19',he:'21:55'},
+  {id:'pt_ev_520',m:'Gerenciamento de Projetos e Produtos',n:32,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Incerteza II',d:'2026-10-29',h:'21:56',he:'21:59'},
+  {id:'pt_ev_521',m:'Revisão',n:0,t:'Revisão',d:'2026-10-29',h:'22:00',he:'23:30'},
+  {id:'pt_ev_522',m:'Gerenciamento de Projetos e Produtos',n:32,t:'Gestão de Projetos - PMBOK 7ª Edição - Domínio de Desempenho da Incerteza II',d:'2026-10-30',h:'18:30',he:'19:09'},
+  {id:'pt_ev_523',m:'Gerenciamento de Projetos e Produtos',n:33,t:'Gestão de Projetos - PMBOK 7ª Edição - Bote Salva Vidas',d:'2026-10-30',h:'19:10',he:'19:46'},
+  {id:'pt_ev_524',m:'Segurança da Informação',n:19,t:'ISO/IEC 27002:2022 - Controles Organizacionais X',d:'2026-10-30',h:'19:47',he:'20:22'},
+  {id:'pt_ev_525',m:'Segurança da Informação',n:20,t:'ISO/IEC 27002:2022 - Controles Organizacionais XI',d:'2026-10-30',h:'20:23',he:'20:39'},
+  {id:'pt_ev_526',m:'Língua Inglesa',n:8,t:'Língua Inglesa - Advérbios',d:'2026-10-30',h:'20:40',he:'21:16'},
+  {id:'pt_ev_527',m:'Língua Inglesa',n:9,t:'Língua Inglesa - Preposições IN, AT e ON',d:'2026-10-30',h:'21:17',he:'21:52'},
+  {id:'pt_ev_528',m:'Segurança da Informação',n:21,t:'ISO/IEC 27002:2022 - Controles Organizacionais XII',d:'2026-10-30',h:'21:53',he:'21:59'},
+  {id:'pt_ev_529',m:'Revisão',n:0,t:'Revisão',d:'2026-10-30',h:'22:00',he:'23:30'},
+  {id:'pt_ev_530',m:'Segurança da Informação',n:21,t:'ISO/IEC 27002:2022 - Controles Organizacionais XII',d:'2026-10-31',h:'09:00',he:'09:05'},
+  {id:'pt_ev_531',m:'Segurança da Informação',n:22,t:'ISO/IEC 27002:2022 - Controles Organizacionais XIII',d:'2026-10-31',h:'09:06',he:'09:15'},
+  {id:'pt_ev_532',m:'Língua Inglesa',n:10,t:'Língua Inglesa - Conjunções And, But, So, Or, Because',d:'2026-10-31',h:'09:16',he:'09:44'},
+  {id:'pt_ev_533',m:'Língua Inglesa',n:11,t:'Língua Inglesa - Subject and Object Pronouns',d:'2026-10-31',h:'09:45',he:'10:19'},
+  {id:'pt_ev_534',m:'Segurança da Informação',n:23,t:'ISO/IEC 27002:2022 - Controles Organizacionais XIV',d:'2026-10-31',h:'10:20',he:'10:29'},
+  {id:'pt_ev_535',m:'Segurança da Informação',n:24,t:'ISO/IEC 27002:2022 - Controles Organizacionais XV',d:'2026-10-31',h:'10:30',he:'10:43'},
+  {id:'pt_ev_536',m:'Língua Inglesa',n:12,t:'Língua Inglesa - Pronomes Possessivos e Adjetivos',d:'2026-10-31',h:'10:44',he:'11:18'},
+  {id:'pt_ev_537',m:'Língua Inglesa',n:13,t:'Língua Inglesa - Genitive Case',d:'2026-10-31',h:'11:19',he:'11:53'},
+  {id:'pt_ev_538',m:'Segurança da Informação',n:25,t:'ISO/IEC 27002:2022 - Controles Organizacionais XVI',d:'2026-10-31',h:'11:54',he:'12:00'},
+  {id:'pt_ev_539',m:'Segurança da Informação',n:25,t:'ISO/IEC 27002:2022 - Controles Organizacionais XVI',d:'2026-10-31',h:'13:30',he:'13:35'},
+  {id:'pt_ev_540',m:'Segurança da Informação',n:26,t:'ISO/IEC 27002:2022 - Controles Organizacionais XVII',d:'2026-10-31',h:'13:36',he:'14:02'},
+  {id:'pt_ev_541',m:'Língua Inglesa',n:14,t:'Língua Inglesa - Quantifiers',d:'2026-10-31',h:'14:03',he:'14:38'},
+  {id:'pt_ev_542',m:'Língua Inglesa',n:15,t:'Língua Inglesa - Sinonímia',d:'2026-10-31',h:'14:39',he:'15:08'},
+  {id:'pt_ev_543',m:'Segurança da Informação',n:27,t:'ISO/IEC 27002:2022 - Controles Organizacionais XVIII',d:'2026-10-31',h:'15:09',he:'15:28'},
+  {id:'pt_ev_544',m:'Segurança da Informação',n:28,t:'ISO/IEC 27002:2022 - Controles Organizacionais XIX',d:'2026-10-31',h:'15:29',he:'15:47'},
+  {id:'pt_ev_545',m:'Língua Inglesa',n:16,t:'Língua Inglesa - O Segredo do Pronome IT',d:'2026-10-31',h:'15:48',he:'16:24'},
+  {id:'pt_ev_546',m:'Língua Inglesa',n:17,t:'Língua Inglesa - Simple Present',d:'2026-10-31',h:'16:25',he:'16:56'},
+  {id:'pt_ev_547',m:'Segurança da Informação',n:29,t:'ISO/IEC 27002:2022 - Controles Organizacionais XX',d:'2026-10-31',h:'16:57',he:'17:13'},
+  {id:'pt_ev_548',m:'Segurança da Informação',n:30,t:'ISO/IEC 27002:2022 - Controles Organizacionais XXI',d:'2026-10-31',h:'17:14',he:'17:34'},
+  {id:'pt_ev_549',m:'Língua Inglesa',n:18,t:'Língua Inglesa - Simple Present - Modern Sentences',d:'2026-10-31',h:'17:35',he:'18:10'},
+  {id:'pt_ev_550',m:'Língua Inglesa',n:19,t:'Língua Inglesa - Simple Future and Going To Future',d:'2026-10-31',h:'18:11',he:'18:45'},
+  {id:'pt_ev_551',m:'Segurança da Informação',n:31,t:'ISO/IEC 27002:2022 - Controles Organizacionais XXII',d:'2026-10-31',h:'18:46',he:'19:00'},
+  {id:'pt_ev_552',m:'Segurança da Informação',n:32,t:'ISO/IEC 27002:2022 - Controles Organizacionais XXIII',d:'2026-10-31',h:'19:01',he:'19:18'},
+  {id:'pt_ev_553',m:'Língua Inglesa',n:20,t:'Língua Inglesa - Simple Past',d:'2026-10-31',h:'19:19',he:'19:54'},
+  {id:'pt_ev_554',m:'Língua Inglesa',n:21,t:'Língua Inglesa - Verbos Auxiliares - Perguntas',d:'2026-10-31',h:'19:55',he:'20:33'},
+  {id:'pt_ev_555',m:'Segurança da Informação',n:33,t:'ISO/IEC 27002:2022 - Controles Organizacionais XXIV',d:'2026-10-31',h:'20:34',he:'20:51'},
+  {id:'pt_ev_556',m:'Segurança da Informação',n:34,t:'ISO/IEC 27002:2022 - Controles Organizacionais XXV',d:'2026-10-31',h:'20:52',he:'21:12'},
+  {id:'pt_ev_557',m:'Língua Inglesa',n:22,t:'Língua Inglesa - Verbos Auxiliares - Negativas',d:'2026-10-31',h:'21:13',he:'21:30'},
+  {id:'pt_ev_558',m:'Revisão',n:0,t:'Revisão',d:'2026-10-31',h:'22:00',he:'23:30'},
+  {id:'pt_ev_559',m:'Língua Inglesa',n:22,t:'Língua Inglesa - Verbos Auxiliares - Negativas',d:'2026-11-01',h:'09:00',he:'09:17'},
+  {id:'pt_ev_560',m:'Língua Inglesa',n:23,t:'Língua Inglesa - Continuous Tenses',d:'2026-11-01',h:'09:18',he:'09:53'},
+  {id:'pt_ev_561',m:'Segurança da Informação',n:35,t:'ISO/IEC 27002:2022 - Controles Organizacionais XXVI',d:'2026-11-01',h:'09:54',he:'10:15'},
+  {id:'pt_ev_562',m:'Segurança da Informação',n:36,t:'ISO/IEC 27002:2022 - Controles de Pessoas',d:'2026-11-01',h:'10:16',he:'10:41'},
+  {id:'pt_ev_563',m:'Língua Inglesa',n:24,t:'ING',d:'2026-11-01',h:'10:42',he:'11:17'},
+  {id:'pt_ev_564',m:'Língua Inglesa',n:25,t:'ING II',d:'2026-11-01',h:'11:18',he:'11:55'},
+  {id:'pt_ev_565',m:'Segurança da Informação',n:37,t:'ISO/IEC 27002:2022 - Controles de Pessoas II',d:'2026-11-01',h:'11:56',he:'12:00'},
+  {id:'pt_ev_566',m:'Segurança da Informação',n:37,t:'ISO/IEC 27002:2022 - Controles de Pessoas II',d:'2026-11-01',h:'13:30',he:'13:43'},
+  {id:'pt_ev_567',m:'Segurança da Informação',n:38,t:'ISO/IEC 27002:2022 - Controles Organizacionais',d:'2026-11-01',h:'13:44',he:'14:06'},
+  {id:'pt_ev_568',m:'Língua Inglesa',n:26,t:'Forma Verbal Enfática',d:'2026-11-01',h:'14:07',he:'14:49'},
+  {id:'pt_ev_569',m:'Língua Inglesa',n:27,t:'Pronomes Reflexivos',d:'2026-11-01',h:'14:50',he:'15:29'},
+  {id:'pt_ev_570',m:'Segurança da Informação',n:39,t:'ISO/IEC 27002:2022 - Controles Organizacionais II',d:'2026-11-01',h:'15:30',he:'15:53'},
+  {id:'pt_ev_571',m:'Segurança da Informação',n:40,t:'ISO/IEC 27002:2022 - Controles de Pessoas',d:'2026-11-01',h:'15:54',he:'16:05'},
+  {id:'pt_ev_572',m:'Língua Inglesa',n:28,t:'If Sentences',d:'2026-11-01',h:'16:06',he:'16:47'},
+  {id:'pt_ev_573',m:'Língua Inglesa',n:29,t:'If Sentences II',d:'2026-11-01',h:'16:48',he:'17:24'},
+  {id:'pt_ev_574',m:'Segurança da Informação',n:41,t:'ISO/IEC 27002:2022 - Controles Físicos',d:'2026-11-01',h:'17:25',he:'17:34'},
+  {id:'pt_ev_575',m:'Segurança da Informação',n:42,t:'ISO/IEC 27002:2022 - Controles Físicos II',d:'2026-11-01',h:'17:35',he:'17:52'},
+  {id:'pt_ev_576',m:'Língua Inglesa',n:30,t:'Can, Could, Able',d:'2026-11-01',h:'17:53',he:'18:24'},
+  {id:'pt_ev_577',m:'Língua Inglesa',n:31,t:'May - Might',d:'2026-11-01',h:'18:25',he:'19:00'},
+  {id:'pt_ev_578',m:'Segurança da Informação',n:43,t:'ISO/IEC 27002:2022 - Controles Físicos III',d:'2026-11-01',h:'19:01',he:'19:20'},
+  {id:'pt_ev_579',m:'Segurança da Informação',n:44,t:'ISO/IEC 27002:2022 - Controles Físicos IV',d:'2026-11-01',h:'19:21',he:'19:42'},
+  {id:'pt_ev_580',m:'Língua Inglesa',n:32,t:'Should - Ought to',d:'2026-11-01',h:'19:43',he:'20:20'},
+  {id:'pt_ev_581',m:'Língua Inglesa',n:33,t:'Must - Must Not',d:'2026-11-01',h:'20:21',he:'21:02'},
+  {id:'pt_ev_582',m:'Segurança da Informação',n:45,t:'ISO/IEC 27002:2022 - Controles Físicos V',d:'2026-11-01',h:'21:03',he:'21:24'},
+  {id:'pt_ev_583',m:'Segurança da Informação',n:46,t:'ISO/IEC 27002:2022 - Controles Físicos VI',d:'2026-11-01',h:'21:25',he:'21:30'},
+  {id:'pt_ev_584',m:'Revisão',n:0,t:'Revisão',d:'2026-11-01',h:'22:00',he:'23:30'},
+  {id:'pt_ev_585',m:'Segurança da Informação',n:46,t:'ISO/IEC 27002:2022 - Controles Físicos VI',d:'2026-11-02',h:'18:30',he:'18:44'},
+  {id:'pt_ev_586',m:'Língua Inglesa',n:34,t:'Ilusão de Óptica',d:'2026-11-02',h:'18:45',he:'19:25'},
+  {id:'pt_ev_587',m:'Língua Inglesa',n:35,t:'Present Perfect',d:'2026-11-02',h:'19:26',he:'19:59'},
+  {id:'pt_ev_588',m:'Segurança da Informação',n:47,t:'ISO/IEC 27002:2022 - Controles Físicos VII',d:'2026-11-02',h:'20:00',he:'20:13'},
+  {id:'pt_ev_589',m:'Segurança da Informação',n:48,t:'ISO/IEC 27002:2022 - Controles Físicos VIII',d:'2026-11-02',h:'20:14',he:'20:48'},
+  {id:'pt_ev_590',m:'Língua Inglesa',n:36,t:'Present Perfect Continuous',d:'2026-11-02',h:'20:49',he:'21:24'},
+  {id:'pt_ev_591',m:'Língua Inglesa',n:37,t:'Pronomes Relativos',d:'2026-11-02',h:'21:25',he:'21:59'},
+  {id:'pt_ev_592',m:'Revisão',n:0,t:'Revisão',d:'2026-11-02',h:'22:00',he:'23:30'},
+  {id:'pt_ev_593',m:'Revisão',n:0,t:'Revisão',d:'2026-11-03',h:'22:00',he:'23:30'},
+  {id:'pt_ev_594',m:'Língua Inglesa',n:37,t:'Pronomes Relativos',d:'2026-11-03',h:'23:31',he:'23:34'},
+  {id:'pt_ev_595',m:'Segurança da Informação',n:49,t:'ISO/IEC 27002:2022 - Controles Tecnológicos',d:'2026-11-03',h:'23:35',he:'23:40'},
+  {id:'pt_ev_596',m:'Segurança da Informação',n:49,t:'ISO/IEC 27002:2022 - Controles Tecnológicos',d:'2026-11-04',h:'18:30',he:'19:00'},
+  {id:'pt_ev_597',m:'Segurança da Informação',n:50,t:'ISO/IEC 27002:2022 - Controles Tecnológicos II',d:'2026-11-04',h:'19:01',he:'19:24'},
+  {id:'pt_ev_598',m:'Língua Inglesa',n:38,t:'Pronomes Relativos II',d:'2026-11-04',h:'19:25',he:'19:47'},
+  {id:'pt_ev_599',m:'Língua Inglesa',n:39,t:'Question Tag',d:'2026-11-04',h:'19:48',he:'20:26'},
+  {id:'pt_ev_600',m:'Segurança da Informação',n:51,t:'ISO/IEC 27002:2022 - Controles Tecnológicos III',d:'2026-11-04',h:'20:27',he:'20:52'},
+  {id:'pt_ev_601',m:'Segurança da Informação',n:52,t:'ISO/IEC 27002:2022 - Controles Tecnológicos IV',d:'2026-11-04',h:'20:53',he:'21:21'},
+  {id:'pt_ev_602',m:'Língua Inglesa',n:40,t:'Past Perfect - Continuous',d:'2026-11-04',h:'21:22',he:'21:59'},
+  {id:'pt_ev_603',m:'Revisão',n:0,t:'Revisão',d:'2026-11-04',h:'22:00',he:'23:30'},
+  {id:'pt_ev_604',m:'Língua Inglesa',n:40,t:'Past Perfect - Continuous',d:'2026-11-05',h:'18:30',he:'18:32'},
+  {id:'pt_ev_605',m:'Língua Inglesa',n:41,t:'Discurso Direto X Indireto',d:'2026-11-05',h:'18:33',he:'19:10'},
+  {id:'pt_ev_606',m:'Segurança da Informação',n:53,t:'ISO/IEC 27002:2022 - Controles Tecnológicos V',d:'2026-11-05',h:'19:11',he:'19:41'},
+  {id:'pt_ev_607',m:'Segurança da Informação',n:54,t:'ISO/IEC 27002:2022 - Controles Tecnológicos VI',d:'2026-11-05',h:'19:42',he:'19:59'},
+  {id:'pt_ev_608',m:'Língua Inglesa',n:42,t:'Voz Passiva (Obj. Direto)',d:'2026-11-05',h:'20:00',he:'20:31'},
+  {id:'pt_ev_609',m:'Língua Inglesa',n:43,t:'Voz Passiva (Obj. Indireto)',d:'2026-11-05',h:'20:32',he:'21:11'},
+  {id:'pt_ev_610',m:'Segurança da Informação',n:1,t:'MITRE ATT&CK',d:'2026-11-05',h:'21:12',he:'21:47'},
+  {id:'pt_ev_611',m:'Segurança da Informação',n:2,t:'MITRE ATT&CK II',d:'2026-11-05',h:'21:48',he:'21:59'},
+  {id:'pt_ev_612',m:'Revisão',n:0,t:'Revisão',d:'2026-11-05',h:'22:00',he:'23:30'},
+  {id:'pt_ev_613',m:'Segurança da Informação',n:2,t:'MITRE ATT&CK II',d:'2026-11-06',h:'18:30',he:'18:53'},
+  {id:'pt_ev_614',m:'Língua Inglesa',n:44,t:'Voz Passiva - Exercícios',d:'2026-11-06',h:'18:54',he:'19:22'},
+  {id:'pt_ev_615',m:'Língua Inglesa',n:45,t:'Marcadores de Discurso',d:'2026-11-06',h:'19:23',he:'20:00'},
+  {id:'pt_ev_616',m:'Segurança da Informação',n:3,t:'MITRE ATT&CK III',d:'2026-11-06',h:'20:01',he:'20:34'},
+  {id:'pt_ev_617',m:'Segurança da Informação',n:4,t:'MITRE ATT&CK IV',d:'2026-11-06',h:'20:35',he:'20:58'},
+  {id:'pt_ev_618',m:'Língua Inglesa',n:46,t:'Recurring Words and Expressions',d:'2026-11-06',h:'20:59',he:'21:39'},
+  {id:'pt_ev_619',m:'Língua Inglesa',n:47,t:'Conjunções',d:'2026-11-06',h:'21:40',he:'21:59'},
+  {id:'pt_ev_620',m:'Revisão',n:0,t:'Revisão',d:'2026-11-06',h:'22:00',he:'23:30'},
+  {id:'pt_ev_621',m:'Língua Inglesa',n:47,t:'Conjunções',d:'2026-11-07',h:'09:00',he:'09:03'},
+  {id:'pt_ev_622',m:'Segurança da Informação',n:1,t:'Segurança em Nuvem',d:'2026-11-07',h:'09:04',he:'09:45'},
+  {id:'pt_ev_623',m:'Segurança da Informação',n:2,t:'Segurança em Nuvem II',d:'2026-11-07',h:'09:46',he:'10:18'},
+  {id:'pt_ev_624',m:'Língua Inglesa',n:48,t:'Determiners',d:'2026-11-07',h:'10:19',he:'10:53'},
+  {id:'pt_ev_625',m:'Língua Inglesa',n:49,t:'Direct and Indirect Speech',d:'2026-11-07',h:'10:54',he:'11:22'},
+  {id:'pt_ev_626',m:'Segurança da Informação',n:3,t:'Segurança em Nuvem - Zero Trust',d:'2026-11-07',h:'11:23',he:'12:00'},
+  {id:'pt_ev_627',m:'Segurança da Informação',n:4,t:'Segurança em Nuvem - Conectividade Site - To - Site',d:'2026-11-07',h:'13:30',he:'14:05'},
+  {id:'pt_ev_628',m:'Língua Inglesa',n:50,t:'Orações coordenadas',d:'2026-11-07',h:'14:06',he:'14:42'},
+  {id:'pt_ev_629',m:'Língua Inglesa',n:51,t:'Orações subordinadas: nominais, relativas e adverbiais (de tempo, lugar, maneira, condição, resultado, explicação, propósito, contraste)',d:'2026-11-07',h:'14:43',he:'15:16'},
+  {id:'pt_ev_630',m:'Segurança da Informação',n:5,t:'Segurança em Nuvem - Direct Connect Express Route',d:'2026-11-07',h:'15:17',he:'15:52'},
+  {id:'pt_ev_631',m:'Segurança da Informação',n:6,t:'Segurança Em Nuvem - Compliance Em Nuvem',d:'2026-11-07',h:'15:53',he:'16:38'},
+  {id:'pt_ev_632',m:'Língua Inglesa',n:52,t:'Orações subordinadas: nominais, relativas e adverbiais (de tempo, lugar, maneira, condição, resultado, explicação, propósito, contraste) II',d:'2026-11-07',h:'16:39',he:'17:04'},
+  {id:'pt_ev_633',m:'Língua Inglesa',n:53,t:'Zero Article',d:'2026-11-07',h:'17:05',he:'17:39'},
+  {id:'pt_ev_634',m:'Língua Inglesa',n:54,t:'Future continuous, Future perfect simple, Future perfect continuous; Past perfect continuous.',d:'2026-11-07',h:'17:40',he:'18:19'},
+  {id:'pt_ev_635',m:'Revisão',n:0,t:'Revisão',d:'2026-11-07',h:'22:00',he:'23:30'},
+];
 
-/* ── ESTADO ── */
-const ST_KEY = 'gran_cron_v2';
-let ST = JSON.parse(localStorage.getItem(ST_KEY)||'{}') || {};
-ST.done = ST.done || {}; ST.moves = ST.moves || {};
-function save(){ localStorage.setItem(ST_KEY, JSON.stringify(ST)); }
+/* Data da prova do BB — ESTIMATIVA (sem edital oficial publicado). Ajuste quando o edital sair. */
+const PROVA_DATE_BB = '2026-11-13';
+/* Data da prova da Transpetro — confirmada em edital (Edital nº 4, Cesgranrio). */
+const PROVA_DATE_PT = '2026-11-29';
+
+/* ── CONCURSOS ── */
+const CONCURSOS = {
+  bb: {
+    label: 'BB — Agente TI 2026',
+    base: () => BASE_LESSONS_BB,
+    stKey: 'gran_cron_v2',
+    importKey: 'gran_import',
+    provaDate: PROVA_DATE_BB,
+    estimada: true,
+  },
+  pt: {
+    label: 'Transpetro — Analista de Sistemas 2026',
+    base: () => BASE_LESSONS_PT,
+    stKey: 'gran_cron_v2_pt',
+    importKey: 'gran_import_pt',
+    provaDate: PROVA_DATE_PT,
+    estimada: false,
+  },
+};
+let CONCURSO = localStorage.getItem('gran_concurso_ativo') || 'bb';
+if (!CONCURSOS[CONCURSO]) CONCURSO = 'bb';
+function concursoMeta(){ return CONCURSOS[CONCURSO]; }
+
+/* ── ESTADO (por concurso — cada um tem seu próprio progresso) ── */
+let ST = {};
+function loadState(){
+  try { ST = JSON.parse(localStorage.getItem(concursoMeta().stKey)||'{}') || {}; } catch(e){ ST = {}; }
+  ST.done = ST.done || {}; ST.moves = ST.moves || {};
+}
+function save(){ localStorage.setItem(concursoMeta().stKey, JSON.stringify(ST)); }
 function effDate(l){ return ST.moves[l.id] || l.d; }
 function isDone(id){ return !!ST.done[id]; }
 function toggleDone(id){ ST.done[id]=!ST.done[id]; if(!ST.done[id])delete ST.done[id]; save(); render(); }
@@ -631,7 +1326,8 @@ function normalizeMat(m){
 }
 
 function rebuildLessons(){
-  const imported = JSON.parse(localStorage.getItem('gran_import')||'[]');
+  const meta = concursoMeta();
+  const imported = JSON.parse(localStorage.getItem(meta.importKey)||'[]');
   const impMonths = [...new Set(imported.map(l=>l.data.substr(0,7)))];
   const impFmt = imported.map((l,i)=>({
     id: '_g'+i,
@@ -644,7 +1340,7 @@ function rebuildLessons(){
   }));
   // Para meses importados, manter apenas eventos de BASE_LESSONS que não existam no Gran (ex: aulas adicionadas manualmente)
   const impKeys = new Set(impFmt.map(l=>l.m+'|'+l.n+'|'+l.d));
-  const base = BASE_LESSONS.filter(l=>
+  const base = meta.base().filter(l=>
     !impMonths.includes(l.d.substr(0,7)) ||
     !impKeys.has(normalizeMat(l.m)+'|'+l.n+'|'+l.d)
   );
@@ -672,7 +1368,8 @@ function deduplicateSplit(arr){
 function handleImportFiles(evt){
   const files = [...evt.target.files];
   if(!files.length) return;
-  const existing = JSON.parse(localStorage.getItem('gran_import')||'[]');
+  const importKey = concursoMeta().importKey;
+  const existing = JSON.parse(localStorage.getItem(importKey)||'[]');
   const pending = [];
   let done = 0;
   files.forEach(f=>{
@@ -699,7 +1396,7 @@ function handleImportFiles(evt){
         const deduped = deduplicateSplit(pending);
         const newMonths = [...new Set(deduped.map(l=>l.data.substr(0,7)))];
         const kept = existing.filter(l=>!newMonths.includes(l.data.substr(0,7)));
-        localStorage.setItem('gran_import', JSON.stringify([...kept,...deduped]));
+        localStorage.setItem(importKey, JSON.stringify([...kept,...deduped]));
         rebuildLessons();
         render();
         const meses = newMonths.map(m=>{
@@ -998,7 +1695,8 @@ function updateSidebar(){
 function renderCountdown(){
   const el = document.getElementById('cd-days');
   if(!el) return;
-  const [y,m,d] = PROVA_DATE.split('-').map(Number);
+  const meta = concursoMeta();
+  const [y,m,d] = meta.provaDate.split('-').map(Number);
   const alvo = new Date(y, m-1, d); alvo.setHours(0,0,0,0);
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const dias = Math.round((alvo - hoje) / 86400000);
@@ -1007,6 +1705,22 @@ function renderCountdown(){
   el.textContent = dias > 0 ? `${dias} dias`
                  : dias === 0 ? 'É hoje!'
                  : `há ${Math.abs(dias)} dias`;
+  const warn = document.getElementById('cd-warn');
+  if(warn) warn.style.display = meta.estimada ? 'block' : 'none';
+}
+
+/* ── TROCA DE CONCURSO ── */
+function setConcurso(c){
+  if(!CONCURSOS[c] || c===CONCURSO) return;
+  CONCURSO = c;
+  localStorage.setItem('gran_concurso_ativo', c);
+  document.querySelectorAll('.conc-btn').forEach(b=>b.classList.toggle('active', b.dataset.conc===c));
+  document.getElementById('sidebar-sub').textContent = concursoMeta().label;
+  loadState();
+  rebuildLessons();
+  render();
+  renderCalendar();
+  renderCountdown();
 }
 
 /* ── MODAL ── */
@@ -1072,6 +1786,9 @@ function render(){
 /* ── INIT ── */
 const now=new Date();
 calYear=now.getFullYear(); calMonth=now.getMonth();
+document.querySelectorAll('.conc-btn').forEach(b=>b.classList.toggle('active', b.dataset.conc===CONCURSO));
+document.getElementById('sidebar-sub').textContent = concursoMeta().label;
+loadState();
 rebuildLessons();
 renderCalendar();
 updateSidebar();
