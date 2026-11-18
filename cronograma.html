@@ -41,6 +41,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .main-header{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--sidebar)}
 .month-nav{display:flex;align-items:center;gap:10px}
+.semana-nav{display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .month-nav h2{font-size:1rem;font-weight:700;min-width:160px;text-align:center}
 .nav-arrow{background:var(--surface);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .nav-arrow:hover{border-color:var(--accent2);color:var(--accent2)}
@@ -263,16 +264,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 <!-- MAIN -->
 <div class="main">
   <div class="main-header">
-    <div class="month-nav">
+    <div class="month-nav" id="month-nav-bar">
       <button class="nav-arrow" onclick="prevMonth()">‹</button>
       <h2 id="month-title">Julho de 2026</h2>
       <button class="nav-arrow" onclick="nextMonth()">›</button>
     </div>
     <div class="header-right">
-      <button class="today-btn" onclick="goToday()">Hoje</button>
-      <div class="view-tabs" id="vtabs-cal" style="display:none">
-        <button class="vtab active" onclick="setCalView('mes')">Mês</button>
-      </div>
     </div>
   </div>
 
@@ -1416,18 +1413,22 @@ function handleImportFiles(evt){
 /* ── NAVEGAÇÃO ── */
 let curView = 'mes';
 let calYear = 2026, calMonth = 6; // 0-indexed: 6 = July
+let hojeDate = null; // dia exibido na view "Hoje"; null = usa a data de hoje
+let semanaOffset = 0; // deslocamento em semanas na view "Semana"; 0 = semana atual
 
 const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DAYS_PT   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
 function switchView(v, btn){
   curView = v;
+  if(v==='hoje' && btn) hojeDate = null; // clique direto no nav "Hoje": volta pro dia de hoje
+  if(v==='semana' && btn) semanaOffset = 0; // clique direto no nav "Semana": volta pra semana atual
   document.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   ['mes','hoje','semana','materias','todas'].forEach(id=>{
     document.getElementById('view-'+id).style.display = id===v?'block':'none';
   });
-  document.getElementById('vtabs-cal').style.display = v==='mes'?'flex':'none';
+  document.getElementById('month-nav-bar').style.display = v==='mes'?'flex':'none';
   render();
 }
 
@@ -1441,12 +1442,6 @@ function nextMonth(){
   if(calMonth>11){calMonth=0;calYear++;}
   renderCalendar();
 }
-function goToday(){
-  const now=new Date();
-  calYear=now.getFullYear(); calMonth=now.getMonth();
-  switchView('mes', document.querySelector('[data-view="mes"]'));
-}
-
 /* ── HELPERS ── */
 function todayStr(){
   const n=new Date();
@@ -1556,26 +1551,37 @@ function showDayPopup(ds){
 
 /* ── HOJE VIEW ── */
 function renderHoje(targetDate){
-  const ds = targetDate||todayStr();
+  if(targetDate) hojeDate = targetDate; // lembra o dia (ex.: aberto via "+N mais" no calendário)
+  const ds = hojeDate||todayStr();
+  const isToday = ds===todayStr();
   const lessons = lessonsOn(ds);
   const el = document.getElementById('hoje-content');
+  const titulo = isToday ? 'Hoje' : 'Aulas do dia';
 
   if(!lessons.length){
-    el.innerHTML=`<div class="section-title">Hoje — ${dateLabel(ds)}</div><div class="section-sub">Nenhuma aula agendada para hoje.</div><p style="color:var(--muted);font-size:.85rem">Aproveite para revisar ou adiantar aulas! 🎉</p>`;
+    el.innerHTML=`<div class="section-title">${titulo} — ${dateLabel(ds)}</div><div class="section-sub">${isToday?'Nenhuma aula agendada para hoje.':'Nenhuma aula agendada para este dia.'}</div><p style="color:var(--muted);font-size:.85rem">Aproveite para revisar ou adiantar aulas! 🎉</p>`;
     return;
   }
-  el.innerHTML=`<div class="section-title">Hoje</div><div class="section-sub">${dateLabel(ds)} · ${lessons.length} aulas</div>`+renderLessonList(lessons);
+  el.innerHTML=`<div class="section-title">${titulo}</div><div class="section-sub">${dateLabel(ds)} · ${lessons.length} aulas</div>`+renderLessonList(lessons);
   updateSidebar();
 }
 
 /* ── SEMANA VIEW ── */
+function prevSemana(){ semanaOffset--; renderSemana(); }
+function nextSemana(){ semanaOffset++; renderSemana(); }
+function semanaAtual(){ semanaOffset=0; renderSemana(); }
 function renderSemana(){
   const today = todayStr();
   const dt = new Date(today+'T12:00:00');
   const dow = dt.getDay();
-  const monday = addDays(today, -dow);
+  const monday = addDays(today, -dow + semanaOffset*7);
 
-  let html = `<div class="section-title">Esta Semana</div><div class="section-sub">`;
+  let html = `<div class="semana-nav">
+    <button class="nav-arrow" onclick="prevSemana()">‹</button>
+    <div class="section-title" style="margin:0">${semanaOffset===0?'Esta Semana':'Semana'}</div>
+    <button class="nav-arrow" onclick="nextSemana()">›</button>
+    ${semanaOffset!==0?'<button class="today-btn" onclick="semanaAtual()" style="margin-left:8px">Semana atual</button>':''}
+  </div><div class="section-sub">`;
   const days=[];
   for(let i=0;i<7;i++){
     const ds = addDays(monday, i);
