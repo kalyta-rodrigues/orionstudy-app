@@ -42,6 +42,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .main-header{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--sidebar)}
 .month-nav{display:flex;align-items:center;gap:10px}
 .semana-nav{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.busca-inp{width:100%;max-width:420px;padding:9px 12px;margin:8px 0 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.85rem}
+.busca-inp:focus{outline:none;border-color:var(--accent2)}
 .month-nav h2{font-size:1rem;font-weight:700;min-width:160px;text-align:center}
 .nav-arrow{background:var(--surface);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .nav-arrow:hover{border-color:var(--accent2);color:var(--accent2)}
@@ -300,7 +302,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   </div>
 
   <div class="scroll-area" id="view-todas" style="display:none">
-    <div class="content-pad" id="todas-content"></div>
+    <div class="content-pad">
+      <div class="section-title">Todas as Aulas</div>
+      <input type="text" id="busca-aula" class="busca-inp" placeholder="Buscar por matéria, número ou título da aula..." oninput="renderTodas()">
+      <div id="todas-content"></div>
+    </div>
   </div>
 </div>
 
@@ -1631,15 +1637,26 @@ function renderMaterias(){
 }
 
 /* ── TODAS VIEW ── */
+function normalizeTxt(s){
+  return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+}
 function renderTodas(){
+  const q = normalizeTxt(document.getElementById('busca-aula')?.value||'');
+  const filtered = q ? LESSONS.filter(l=>normalizeTxt(`${l.m} aula ${l.n} ${l.t}`).includes(q)) : LESSONS;
+
+  if(q && !filtered.length){
+    document.getElementById('todas-content').innerHTML = `<div class="section-sub">Nenhuma aula encontrada para "${document.getElementById('busca-aula').value}".</div>`;
+    return;
+  }
+
   const byDate={};
-  LESSONS.forEach(l=>{
+  filtered.forEach(l=>{
     const ds=effDate(l);
     if(!byDate[ds])byDate[ds]=[];
     byDate[ds].push(l);
   });
   const dates=Object.keys(byDate).sort();
-  let html=`<div class="section-title">Todas as Aulas</div><div class="section-sub">${LESSONS.length} aulas · ${LESSONS.filter(l=>isDone(l.id)).length} concluídas</div>`;
+  let html=`<div class="section-sub">${filtered.length}${q?` de ${LESSONS.length}`:''} aulas · ${filtered.filter(l=>isDone(l.id)).length} concluídas</div>`;
   const today=todayStr();
   dates.forEach(ds=>{
     const lessons=byDate[ds].sort((a,b)=>((a.h||'99')<(b.h||'99')?-1:1));
