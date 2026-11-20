@@ -1643,11 +1643,13 @@ function renderDiario(){
 
   let h=`<div class="section-title">Diário de estudo</div><div class="section-sub">${concursoMeta().label}</div>`;
   h+=`<div class="dia-box"><h3>Hoje — ${DN[dow]} ${shortDate(today)}</h3>
-    <div>${doneToday} de ${meta} aulas da meta${adiantadasHoje?` · ${adiantadasHoje} adiantada(s)`:''}</div>
+    <div>Você marcou <b>${doneToday}</b> aula(s) como feita(s) hoje · meta do dia: <b>${meta}</b> (você escolhe esse número nas caixinhas abaixo)${adiantadasHoje?` · ${adiantadasHoje} adiantada(s)`:''}</div>
     <div class="dia-bar"><i style="width:${pct}%"></i></div>
     <div style="font-size:.74rem;color:var(--muted)">Atrasadas: <b>${overdue.length}</b> · a meta é por quantidade de aulas, não por horário — pode pausar e voltar.</div>
     <div class="quota-row">${DN.map((n,i)=>`<label>${n}<input type="number" min="0" value="${ST.quota[i]}" onchange="setQuota(${i},this.value)"></label>`).join('')}</div>
   </div>`;
+  const hojeL=lessonsOn(today).filter(l=>!isAviso(l));
+  h+=`<div class="dia-box"><h3>Planejado para hoje (${hojeL.length} aulas no Gran)</h3>${hojeL.length?renderLessonList(hojeL):'<div style="font-size:.78rem;color:var(--muted)">Nenhuma aula no cronograma de hoje.</div>'}</div>`;
   if(overdue.length){
     h+=`<div class="dia-box"><h3>Atrasadas (${overdue.length})</h3><div style="font-size:.74rem;color:var(--muted);margin-bottom:6px">Mostrando as 15 mais antigas. Use Adiar para reagendar.</div>${renderLessonList(overdue.slice(0,15))}</div>`;
   }
@@ -1661,7 +1663,7 @@ function renderDiario(){
       <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px">${adi?adi+' adiantada(s) · ':''}${atr?atr+' com atraso · ':''}${ls.length-adi-atr} no dia</div>
       ${renderLessonList(ls)}</div>`;
   });
-  if(semData) h+=`<p style="color:var(--muted);font-size:.78rem">${semData} aula(s) marcadas antes desta função não têm data registrada.</p>`;
+  if(semData) h+=`<p style="color:var(--muted);font-size:.78rem">${semData} aula(s) já estavam concluídas no Gran e foram importadas sem a data em que você as fez.</p>`;
   el.innerHTML=h;
   updateSidebar();
 }
