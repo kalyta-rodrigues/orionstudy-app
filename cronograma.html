@@ -103,6 +103,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .lc-num{font-size:.68rem;color:var(--muted)}
 .lc-title{font-size:.85rem;line-height:1.4}
 .lc-time{font-size:.7rem;color:var(--muted);margin-top:2px}
+.lc-tag.ok{color:#34d399;background:#10b98112;border-color:#10b98130}
+.lc-tag.warn{color:#fb923c;background:#f9731612;border-color:#f9731630}
+.lc-tag.late{color:#f87171;background:#ef444412;border-color:#ef444430}
+.dia-box{background:var(--surface);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.dia-box h3{font-size:.9rem;margin:0 0 6px}
+.dia-bar{height:6px;border-radius:4px;background:var(--surface2);overflow:hidden;margin:6px 0}
+.dia-bar>i{display:block;height:100%;background:var(--accent)}
+.quota-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.quota-row label{font-size:.7rem;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.quota-row input{width:46px;padding:4px;border-radius:6px;border:1px solid var(--surface2);background:var(--bg);color:inherit;text-align:center}
 .lc-tag{font-size:.63rem;color:#a78bfa;background:#a855f712;border:1px solid #a855f725;border-radius:4px;padding:1px 5px}
 .lc-actions{display:flex;gap:6px;margin-top:7px}
 .act{padding:3px 9px;border-radius:5px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .15s}
@@ -202,7 +212,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <span id="sidebar-sub">BB — Agente TI 2026</span>
   </div>
   <div class="conc-switch">
-    <button class="conc-btn active" data-conc="bb" onclick="setConcurso('bb')">BB</button>
+    <button class="conc-btn" data-conc="bn" onclick="setConcurso('bn')">Banestes</button>
+    <button class="conc-btn" data-conc="bb" onclick="setConcurso('bb')">BB</button>
     <button class="conc-btn" data-conc="pt" onclick="setConcurso('pt')">Transpetro</button>
   </div>
   <nav class="sidebar-nav">
@@ -213,6 +224,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <button class="snav" data-view="hoje" onclick="switchView('hoje',this)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.78" y2="4.22"/></svg>
       Hoje
+    </button>
+    <button class="snav" data-view="diario" onclick="switchView('diario',this)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Diário
     </button>
     <button class="snav" data-view="semana" onclick="switchView('semana',this)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
@@ -291,6 +306,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
   <div class="scroll-area" id="view-hoje" style="display:none">
     <div class="content-pad" id="hoje-content"></div>
+  </div>
+
+  <div class="scroll-area" id="view-diario" style="display:none">
+    <div class="content-pad" id="diario-content"></div>
   </div>
 
   <div class="scroll-area" id="view-semana" style="display:none">
@@ -1265,9 +1284,19 @@ const BASE_LESSONS_PT = [
 const PROVA_DATE_BB = '2027-06-20';
 /* Data da prova da Transpetro — confirmada em edital (Edital nº 4, Cesgranrio). */
 const PROVA_DATE_PT = '2026-11-29';
+/* Banestes (FCC) — Edital 01/2027: prova em 21/02/2027. */
+const PROVA_DATE_BN = '2027-02-21';
 
 /* ── CONCURSOS ── */
 const CONCURSOS = {
+  bn: {
+    label: 'Banestes — Analista TI (Desenv. de Sistemas) 2027',
+    base: () => [],
+    stKey: 'gran_cron_v2_bn',
+    importKey: 'gran_import_bn',
+    provaDate: PROVA_DATE_BN,
+    estimada: false,
+  },
   bb: {
     label: 'BB — Agente TI 2026',
     base: () => BASE_LESSONS_BB,
@@ -1285,8 +1314,8 @@ const CONCURSOS = {
     estimada: false,
   },
 };
-let CONCURSO = localStorage.getItem('gran_concurso_ativo') || 'bb';
-if (!CONCURSOS[CONCURSO]) CONCURSO = 'bb';
+let CONCURSO = localStorage.getItem('gran_concurso_ativo') || 'bn';
+if (!CONCURSOS[CONCURSO]) CONCURSO = 'bn';
 function concursoMeta(){ return CONCURSOS[CONCURSO]; }
 
 /* ── ESTADO (por concurso — cada um tem seu próprio progresso) ── */
@@ -1294,11 +1323,30 @@ let ST = {};
 function loadState(){
   try { ST = JSON.parse(localStorage.getItem(concursoMeta().stKey)||'{}') || {}; } catch(e){ ST = {}; }
   ST.done = ST.done || {}; ST.moves = ST.moves || {};
+  ST.doneAt = ST.doneAt || {};            // id -> data (AAAA-MM-DD) em que a aula foi marcada como feita
+  ST.quota = ST.quota || [6,6,6,6,6,6,3]; // meta de aulas por dia da semana (Dom..Sáb); editável no Diário
 }
 function save(){ localStorage.setItem(concursoMeta().stKey, JSON.stringify(ST)); }
 function effDate(l){ return ST.moves[l.id] || l.d; }
 function isDone(id){ return !!ST.done[id]; }
-function toggleDone(id){ ST.done[id]=!ST.done[id]; if(!ST.done[id])delete ST.done[id]; save(); render(); }
+function toggleDone(id){
+  ST.done[id]=!ST.done[id];
+  if(ST.done[id]) ST.doneAt[id]=todayStr(); else { delete ST.done[id]; delete ST.doneAt[id]; }
+  save(); render();
+}
+/* Situação da aula em relação ao plano: retorna [texto, classe] ou null */
+function lessonStatus(l){
+  const planned = effDate(l), today = todayStr();
+  if(isDone(l.id)){
+    const at = ST.doneAt[l.id];
+    if(!at) return null;
+    if(at < planned) return ['feita adiantada','ok'];
+    if(at > planned) return ['feita com atraso','warn'];
+    return ['feita no dia','ok'];
+  }
+  if(planned < today) return ['atrasada','late'];
+  return null;
+}
 
 /* ── IMPORTAÇÃO DO GRAN CURSOS ── */
 let LESSONS = [];
@@ -1431,7 +1479,7 @@ function switchView(v, btn){
   if(v==='semana' && btn) semanaOffset = 0; // clique direto no nav "Semana": volta pra semana atual
   document.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  ['mes','hoje','semana','materias','todas'].forEach(id=>{
+  ['mes','hoje','diario','semana','materias','todas'].forEach(id=>{
     document.getElementById('view-'+id).style.display = id===v?'block':'none';
   });
   document.getElementById('month-nav-bar').style.display = v==='mes'?'flex':'none';
@@ -1572,6 +1620,49 @@ function renderHoje(targetDate){
   updateSidebar();
 }
 
+/* ── DIÁRIO: o que foi feito em cada dia, adiantadas/adiadas/atrasadas, meta por dia ── */
+function setQuota(i, v){ ST.quota[i]=Math.max(0,parseInt(v)||0); save(); renderDiario(); }
+function shortDate(ds){ const [y,m,d]=ds.split('-'); return d+'/'+m; }
+function renderDiario(){
+  const el=document.getElementById('diario-content');
+  const today=todayStr();
+  const dow=new Date(today+'T12:00:00').getDay();
+  const meta=ST.quota[dow];
+  const doneToday=LESSONS.filter(l=>ST.doneAt[l.id]===today).length;
+  const pct=meta?Math.min(100,Math.round(doneToday/meta*100)):0;
+  const overdue=LESSONS.filter(l=>!isDone(l.id)&&effDate(l)<today).sort((a,b)=>effDate(a)>effDate(b)?1:-1);
+  const adiantadasHoje=LESSONS.filter(l=>ST.doneAt[l.id]===today&&ST.doneAt[l.id]<effDate(l)).length;
+  const byDay={};
+  LESSONS.forEach(l=>{ const at=ST.doneAt[l.id]; if(at&&isDone(l.id)) (byDay[at]=byDay[at]||[]).push(l); });
+  const days=Object.keys(byDay).sort().reverse();
+  const semData=LESSONS.filter(l=>isDone(l.id)&&!ST.doneAt[l.id]).length;
+  const DN=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  let h=`<div class="section-title">Diário de estudo</div><div class="section-sub">${concursoMeta().label}</div>`;
+  h+=`<div class="dia-box"><h3>Hoje — ${DN[dow]} ${shortDate(today)}</h3>
+    <div>${doneToday} de ${meta} aulas da meta${adiantadasHoje?` · ${adiantadasHoje} adiantada(s)`:''}</div>
+    <div class="dia-bar"><i style="width:${pct}%"></i></div>
+    <div style="font-size:.74rem;color:var(--muted)">Atrasadas: <b>${overdue.length}</b> · a meta é por quantidade de aulas, não por horário — pode pausar e voltar.</div>
+    <div class="quota-row">${DN.map((n,i)=>`<label>${n}<input type="number" min="0" value="${ST.quota[i]}" onchange="setQuota(${i},this.value)"></label>`).join('')}</div>
+  </div>`;
+  if(overdue.length){
+    h+=`<div class="dia-box"><h3>Atrasadas (${overdue.length})</h3><div style="font-size:.74rem;color:var(--muted);margin-bottom:6px">Mostrando as 15 mais antigas. Use Adiar para reagendar.</div>${renderLessonList(overdue.slice(0,15))}</div>`;
+  }
+  h+=`<div class="section-title" style="font-size:1rem;margin-top:14px">Histórico por dia</div>`;
+  if(!days.length) h+=`<p style="color:var(--muted);font-size:.85rem">Nada marcado ainda. Marque aulas como feitas e elas aparecem aqui com a data real.</p>`;
+  days.slice(0,60).forEach(ds=>{
+    const ls=byDay[ds];
+    const d=new Date(ds+'T12:00:00').getDay();
+    const adi=ls.filter(l=>ds<effDate(l)).length, atr=ls.filter(l=>ds>effDate(l)).length;
+    h+=`<div class="dia-box"><h3>${DN[d]} ${shortDate(ds)} — ${ls.length} aula(s)${ST.quota[d]?` <small style="color:var(--muted)">(meta ${ST.quota[d]})</small>`:''}</h3>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px">${adi?adi+' adiantada(s) · ':''}${atr?atr+' com atraso · ':''}${ls.length-adi-atr} no dia</div>
+      ${renderLessonList(ls)}</div>`;
+  });
+  if(semData) h+=`<p style="color:var(--muted);font-size:.78rem">${semData} aula(s) marcadas antes desta função não têm data registrada.</p>`;
+  el.innerHTML=h;
+  updateSidebar();
+}
+
 /* ── SEMANA VIEW ── */
 function prevSemana(){ semanaOffset--; renderSemana(); }
 function nextSemana(){ semanaOffset++; renderSemana(); }
@@ -1684,7 +1775,8 @@ function renderLessonList(lessons){
         <div class="lc-meta">
           <span class="lc-mat" style="background:${col.bg};color:${col.c}">${shortMat(l.m)}</span>
           <span class="lc-num">Aula ${l.n}</span>
-          ${moved?'<span class="lc-tag">reagendado</span>':''}
+          ${moved?`<span class="lc-tag">${ST.moves[l.id]<l.d?'adiantada':'adiada'} (era ${l.d.split('-').reverse().slice(0,2).join('/')})</span>`:''}
+          ${(()=>{const st=lessonStatus(l); return st?`<span class="lc-tag ${st[1]}">${st[0]}${isDone(l.id)&&ST.doneAt[l.id]?' · '+ST.doneAt[l.id].split('-').reverse().slice(0,2).join('/'):''}</span>`:'';})()}
         </div>
         <div class="lc-title">${l.t}</div>
         ${l.h?`<div class="lc-time">${l.h} – ${l.he}</div>`:''}
@@ -1802,6 +1894,7 @@ function showToast(msg){
 function render(){
   if(curView==='mes')   renderCalendar();
   if(curView==='hoje')  renderHoje();
+  if(curView==='diario')renderDiario();
   if(curView==='semana')renderSemana();
   if(curView==='materias')renderMaterias();
   if(curView==='todas') renderTodas();
