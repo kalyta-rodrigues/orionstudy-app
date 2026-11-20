@@ -1334,13 +1334,20 @@ function toggleDone(id){
   if(ST.done[id]) ST.doneAt[id]=todayStr(); else { delete ST.done[id]; delete ST.doneAt[id]; }
   save(); render();
 }
+/* Data em que a aula foi feita. Se veio concluída do Gran sem data, estima pela data planejada (ou hoje, se era futura). */
+function doneDate(l){
+  if(!isDone(l.id)) return null;
+  if(ST.doneAt[l.id]) return ST.doneAt[l.id];
+  const p=effDate(l), t=todayStr();
+  return p<=t ? p : t;
+}
 /* Aulas "ATENÇÃO!" são só avisos que apontam para outra disciplina: nunca contam como atrasadas */
 function isAviso(l){ return /ATEN[ÇC][ÃA]O!/i.test(l.t||''); }
 /* Situação da aula em relação ao plano: retorna [texto, classe] ou null */
 function lessonStatus(l){
   const planned = effDate(l), today = todayStr();
   if(isDone(l.id)){
-    const at = ST.doneAt[l.id];
+    const at = doneDate(l);
     if(!at) return null;
     if(at < planned) return ['feita adiantada','ok'];
     if(at > planned) return ['feita com atraso','warn'];
@@ -1631,12 +1638,12 @@ function renderDiario(){
   const today=todayStr();
   const dow=new Date(today+'T12:00:00').getDay();
   const meta=ST.quota[dow];
-  const doneToday=LESSONS.filter(l=>ST.doneAt[l.id]===today).length;
+  const doneToday=LESSONS.filter(l=>doneDate(l)===today).length;
   const pct=meta?Math.min(100,Math.round(doneToday/meta*100)):0;
   const overdue=LESSONS.filter(l=>!isDone(l.id)&&!isAviso(l)&&effDate(l)<today).sort((a,b)=>effDate(a)>effDate(b)?1:-1);
-  const adiantadasHoje=LESSONS.filter(l=>ST.doneAt[l.id]===today&&ST.doneAt[l.id]<effDate(l)).length;
+  const adiantadasHoje=LESSONS.filter(l=>doneDate(l)===today&&today<effDate(l)).length;
   const byDay={};
-  LESSONS.forEach(l=>{ const at=ST.doneAt[l.id]; if(at&&isDone(l.id)) (byDay[at]=byDay[at]||[]).push(l); });
+  LESSONS.forEach(l=>{ const at=doneDate(l); if(at) (byDay[at]=byDay[at]||[]).push(l); });
   const days=Object.keys(byDay).sort().reverse();
   const semData=LESSONS.filter(l=>isDone(l.id)&&!ST.doneAt[l.id]).length;
   const DN=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -1663,7 +1670,7 @@ function renderDiario(){
       <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px">${adi?adi+' adiantada(s) · ':''}${atr?atr+' com atraso · ':''}${ls.length-adi-atr} no dia</div>
       ${renderLessonList(ls)}</div>`;
   });
-  if(semData) h+=`<p style="color:var(--muted);font-size:.78rem">${semData} aula(s) já estavam concluídas no Gran e foram importadas sem a data em que você as fez.</p>`;
+  if(semData) h+=`<p style="color:var(--muted);font-size:.78rem">${semData} aula(s) vieram concluídas do Gran sem a data exata; o app estimou pelo dia planejado (marcadas com "est.").</p>`;
   el.innerHTML=h;
   updateSidebar();
 }
@@ -1781,7 +1788,7 @@ function renderLessonList(lessons){
           <span class="lc-mat" style="background:${col.bg};color:${col.c}">${shortMat(l.m)}</span>
           <span class="lc-num">Aula ${l.n}</span>
           ${moved?`<span class="lc-tag">${ST.moves[l.id]<l.d?'adiantada':'adiada'} (era ${l.d.split('-').reverse().slice(0,2).join('/')})</span>`:''}
-          ${(()=>{const st=lessonStatus(l); return st?`<span class="lc-tag ${st[1]}">${st[0]}${isDone(l.id)&&ST.doneAt[l.id]?' · '+ST.doneAt[l.id].split('-').reverse().slice(0,2).join('/'):''}</span>`:'';})()}
+          ${(()=>{const st=lessonStatus(l); return st?`<span class="lc-tag ${st[1]}">${st[0]}${isDone(l.id)&&doneDate(l)?' · '+doneDate(l).split('-').reverse().slice(0,2).join('/')+(ST.doneAt[l.id]?'':' (est.)'):''}</span>`:'';})()}
         </div>
         <div class="lc-title">${l.t}</div>
         ${l.h?`<div class="lc-time">${l.h} – ${l.he}</div>`:''}
